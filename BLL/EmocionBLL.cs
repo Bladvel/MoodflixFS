@@ -32,8 +32,7 @@ namespace BLL
                 throw new ArgumentNullException(nameof(emocion), "La emoción no puede ser nula.");
             if (string.IsNullOrWhiteSpace(emocion.Nombre))
                 throw new Exception("El nombre de la emoción es un campo requerido.");
-            if (emocion.Nombre.Length > 100)
-                throw new Exception("El nombre de la emoción no puede superar los 100 caracteres.");
+
 
             try
             {
@@ -43,7 +42,7 @@ namespace BLL
             }
             catch (SqlException ex)
             {
-                // El error 2627 en SQL Server es "Violation of UNIQUE KEY constraint".
+                //2627 unique key exception
                 if (ex.Number == 2627)
                 {
                     throw new Exception($"La emoción con el nombre '{emocion.Nombre}' ya existe.");
