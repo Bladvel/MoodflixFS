@@ -24,28 +24,25 @@ namespace DAL
 
         public override List<Emocion> GetAll()
         {
+            List<Emocion> emociones = new List<Emocion>();
             using (var con = new SqlConnection(_connectionString))
             {
-                var da = new SqlDataAdapter("SELECT * FROM Emocion", con);
-                da.SelectCommand.CommandType = CommandType.Text;
+                var da = new SqlDataAdapter("sp_ListarEmociones", con);
+                da.SelectCommand.CommandType = CommandType.StoredProcedure;
                 DataTable table = new DataTable();
                 da.Fill(table);
-
-                List<Emocion> emociones = new List<Emocion>();
-
 
                 foreach (DataRow row in table.Rows)
                 {
                     emociones.Add(Transform(row));
                 }
-                return emociones;
-
             }
+            return emociones;
         }
 
         public override Emocion GetById(int id)
         {
-            Emocion emocion = null;
+            
             using(var con = new SqlConnection(_connectionString))
             {
                 var cmd = new SqlCommand("sp_ObtenerEmocionPorId", con);
@@ -56,10 +53,10 @@ namespace DAL
                 da.Fill(table);
                 if (table.Rows.Count == 1)
                 {
-                    emocion = Transform(table.Rows[0]);
+                    return Transform(table.Rows[0]);
                 }
             }
-            return emocion;
+            return null;
         }
 
         

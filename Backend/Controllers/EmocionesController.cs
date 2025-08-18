@@ -39,10 +39,9 @@ namespace Backend.Controllers
         {
             var emocion = _emocionBLL.GetById(id);
 
-
             if (emocion == null)
             {
-                return NotFound();
+                return Content(HttpStatusCode.NotFound, new { Message = $"Emocion con ID {id} no fue encontrada." });
             }
 
             return Ok(emocion);
@@ -97,8 +96,7 @@ namespace Backend.Controllers
 
                 _emocionBLL.Update(emocion);
 
-                // Devolvemos un 200 OK para indicar que la actualización fue exitosa.
-                // También se podría devolver un 204 NoContent.
+
                 return Ok();
             }
             catch (Exception ex)
@@ -124,12 +122,11 @@ namespace Backend.Controllers
                 }
 
                 _emocionBLL.Delete(id);
-                return Ok(); // Devuelve un 200 OK.
+                return Ok();
             }
             catch (Exception ex)
             {
-                // Si la BLL tuviera una regla como "no borrar emociones en uso",
-                // la atraparíamos aquí.
+
                 return BadRequest(ex.Message);
             }
         }

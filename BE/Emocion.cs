@@ -11,11 +11,11 @@ namespace BE
     {
         public int Id { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "El nombre de la emoción es requerido.")]
         [StringLength(100)]
         public string Nombre { get; set; }
 
-        [Url]
+        [StringLength(2048)]
         public string UrlImagen { get; set; } = string.Empty;
 
         public ICollection<Producto> Productos { get; set; }
