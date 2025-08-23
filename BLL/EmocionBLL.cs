@@ -40,10 +40,10 @@ namespace BLL
                 emocion.Id = newId;
                 return emocion;
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 //2627 unique key exception
-                if (ex.Number == 2627)
+                if (ex is SqlException sqlEx && sqlEx.Number == 2627)
                 {
                     throw new Exception($"La emoción con el nombre '{emocion.Nombre}' ya existe.");
                 }

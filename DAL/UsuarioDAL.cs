@@ -25,8 +25,9 @@ namespace DAL
                 Bloqueado = (bool)row["Bloqueado"]
             };
 
-            // Cargamos los permisos del usuario usando la DAL de permisos.
-            usuario.Permisos = _permisoDAL.GetPermisosDeUsuario(usuario.Id);
+            
+            usuario.Permisos = _permisoDAL.GetArbolDePermisosDeUsuario(usuario.Id);
+
 
             return usuario;
         }
@@ -64,7 +65,7 @@ namespace DAL
             }
 
 
-            // Aquí iría la lógica futura para actualizar los permisos en la tabla Usuario_Permiso.
+            
         }
 
         public override void Delete(int id)
@@ -115,7 +116,7 @@ namespace DAL
             return null;
         }
 
-        // Método específico muy importante para el login.
+
         public Usuario GetByEmail(string email)
         {
             using (var con = new SqlConnection(_connectionString))
