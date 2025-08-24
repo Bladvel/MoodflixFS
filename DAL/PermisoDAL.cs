@@ -14,7 +14,6 @@ namespace DAL
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
 
-
         //Con jerarquía de permisos
         public List<Permiso> GetAll()
         {
@@ -56,6 +55,47 @@ namespace DAL
             return permisos.Where(p => !ds.Tables[1].AsEnumerable().Any(row => (int)row["IdHijo"] == p.Id)).ToList();
         }
 
+        public Permiso GetById(int permisoId)
+        {
+            List<Permiso> permisos = new List<Permiso>();
+            DataSet ds = new DataSet();
+            using (var con = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand("sp_ObtenerPermisoPorId", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Id", permisoId);
+                SqlDataAdapter da = new SqlDataAdapter(cmd);
+                da.Fill(ds);
+
+                if(ds.Tables.Count <2 || ds.Tables[0].Rows.Count ==0)
+                {
+                    return null;
+                }
+
+                foreach (DataRow row in ds.Tables[0].Rows)
+                {
+                    permisos.Add(Transform(row));
+                }
+
+                foreach (DataRow row in ds.Tables[1].Rows)
+                {
+                    int idPadre = (int)row["IdPadre"];
+                    int idHijo = (int)row["IdHijo"];
+                    var padre = permisos.FirstOrDefault(p => p.Id == idPadre) as Familia;
+                    var hijo = permisos.FirstOrDefault(p => p.Id == idHijo);
+                    if (padre != null && hijo != null)
+                    {
+                        padre.Hijos.Add(hijo);
+                    }
+                }
+            }
+
+
+            return permisos.FirstOrDefault(p => p.Id == permisoId);
+        }
+
+
+
 
         [Obsolete]
         public List<Permiso> GetPermisosDeUsuario(int usuarioId)
@@ -87,7 +127,6 @@ namespace DAL
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@UsuarioId", usuario.Id);
 
-                // Creamos un DataTable en memoria para pasar la lista de IDs de permisos.
                 var dtPermisos = new DataTable();
                 dtPermisos.Columns.Add("Id", typeof(int));
                 foreach (var permiso in usuario.Permisos)
@@ -96,17 +135,13 @@ namespace DAL
                 }
 
                 var sqlParam = cmd.Parameters.AddWithValue("@PermisosIdsDataTable", dtPermisos);
-                sqlParam.SqlDbType = SqlDbType.Structured; // Indicamos que es un tipo de tabla.
+                sqlParam.SqlDbType = SqlDbType.Structured;
 
                 con.Open();
                 cmd.ExecuteNonQuery();
             }
         }
 
-
-
-
-        
 
         public int Create(Permiso permiso)
         {
@@ -124,15 +159,7 @@ namespace DAL
 
             if(permiso.Id >0 && permiso is Familia permisoFamilia)
             {
-                try
-                {
-                    GuardarHijos(permisoFamilia);
-                }
-                catch
-                {
-                    throw;
-                }
-                
+                GuardarHijos(permisoFamilia);
             }
 
             return permiso.Id;
@@ -153,14 +180,7 @@ namespace DAL
 
             if(permiso is Familia familia)
             {
-                try
-                {
-                    GuardarHijos(familia);
-                }
-                catch
-                {
-                    throw;
-                }
+                GuardarHijos(familia);
             }
         }
 
@@ -263,6 +283,19 @@ namespace DAL
             return permisos.Where(p =>
                 !ds.Tables[1].AsEnumerable().Any(row => (int)row["IdHijo"] == p.Id)
             ).ToList();
+        }
+
+
+        public void Delete(int permisoId)
+        {
+            using (var con = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand("sp_BorrarPermiso", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Id", permisoId);
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
         }
 
 

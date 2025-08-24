@@ -22,6 +22,8 @@ namespace BLL
 
         public Emocion GetById(int id)
         {
+            if (id <= 0)
+                throw new Exception("El ID proporcionado no es válido.");
             return _emocionDAL.GetById(id);
         }
 

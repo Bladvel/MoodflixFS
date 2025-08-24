@@ -18,6 +18,14 @@ namespace BLL
             return _permisoDAL.GetAll();
         }
 
+        public Permiso GetPermisoById(int id)
+        {
+            if (id <= 0)
+                throw new Exception("El ID del permiso no es válido.");
+            return _permisoDAL.GetById(id);
+        }
+
+
         public Permiso Create(Permiso permiso)
         {
             if (permiso == null)
@@ -96,6 +104,14 @@ namespace BLL
             }
         }
 
+        public void Delete(int id)
+        {
+            if (id <= 0)
+                throw new Exception("El ID del permiso para eliminar no es válido.");
+
+            _permisoDAL.Delete(id);
+        }
+
         private bool TieneReferenciaCircular(Familia familia, HashSet<int> ancestros)
         {
             if (ancestros.Contains(familia.Id))
@@ -103,12 +119,12 @@ namespace BLL
                 return true;
             }
 
-            if(familia.Hijos == null || familia.Hijos.Count == 0)
+            if (familia.Hijos == null || familia.Hijos.Count == 0)
             {
                 return false;
             }
 
-            if(familia.Id > 0)
+            if (familia.Id > 0)
             {
                 ancestros.Add(familia.Id);
             }
@@ -127,6 +143,5 @@ namespace BLL
 
             return false;
         }
-
     }
 }

@@ -20,6 +20,8 @@ namespace BLL
 
         public Producto GetById(int id)
         {
+            if (id <= 0)
+                throw new Exception("El ID proporcionado no es válido.");
             return _productoDAL.GetById(id);
         }
 

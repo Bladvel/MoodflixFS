@@ -163,6 +163,7 @@
     <Compile Include="Controllers\EmocionesController.cs" />
     <Compile Include="Controllers\LibrosController.cs" />
     <Compile Include="Controllers\PeliculasController.cs" />
+    <Compile Include="Controllers\PermisosController.cs" />
     <Compile Include="Controllers\ProductosController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
