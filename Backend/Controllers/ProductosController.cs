@@ -62,7 +62,7 @@ namespace Backend.Controllers
                     return Content(HttpStatusCode.NotFound, new { Message = $"Producto con ID {id} no fue encontrado." });
                 }
                 _productoBLL.Delete(id);
-                return Ok();
+                return Ok(new { Message = $"Producto con ID {id} ha sido eliminado." });
             }
             catch (Exception ex)
             {

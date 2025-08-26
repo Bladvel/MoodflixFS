@@ -5,8 +5,10 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Web.Http;
+using System.Web.UI.WebControls;
 using BE;
 using BLL;
+using Newtonsoft.Json.Linq;
 
 namespace Backend.Controllers
 {
@@ -39,34 +41,145 @@ namespace Backend.Controllers
         [Route("{id:int}", Name = "GetPermisoById")]
         public IHttpActionResult GetById(int id)
         {
-            if(id <= 0)
-            {
-                return Content(HttpStatusCode.BadRequest, new { Message = "El ID proporcionado no es válido." });
+            if (id <= 0)
+            { 
+                return BadRequest("El ID proporcionado no es válido.");
             }
 
             var permiso = _permisoBLL.GetPermisoById(id);
             if (permiso == null)
             {
+                
                 return Content(HttpStatusCode.NotFound, new { Message = $"Permiso con ID {id} no fue encontrado." });
             }
             return Ok(permiso);
         }
 
+        /// <summary>
+        /// POST: api/permisos
+        /// Crea un nuevo permiso.
+        /// </summary>
+        [HttpPost]
+        [Route("")]
 
-
-        // POST: api/Permisos
-        public void Post([FromBody]string value)
+        // POST: api/permisos
+        public IHttpActionResult Create([FromBody] JObject jsonPermiso)
         {
+            if (jsonPermiso == null)
+            {
+                return BadRequest("El cuerpo de la solicitud no puede ser nulo.");
+            }
+
+            try
+            {
+                var createdPermiso = _permisoBLL.Create(DeserializarPermiso(jsonPermiso));
+                return CreatedAtRoute("GetPermisoById", new { id = createdPermiso.Id }, createdPermiso);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        // PUT: api/Permisos/5
-        public void Put(int id, [FromBody]string value)
+        /// <summary>
+        /// PUT: api/permisos/5
+        /// Actualiza un permiso existente.
+        /// </summary>
+        [HttpPut]
+        [Route("{id:int}")]
+        public IHttpActionResult Update(int id, [FromBody] JObject jsonPermiso)
         {
+            if (jsonPermiso == null)
+            {
+                return BadRequest("El cuerpo de la solicitud no puede ser nulo.");
+            }
+
+            if(id <= 0)
+            {
+                return BadRequest("El ID proporcionado no es válido.");
+            }
+
+            Permiso permisoTraido = DeserializarPermiso(jsonPermiso);
+            if (id != permisoTraido.Id)
+            {
+                return BadRequest("El ID en la URL no coincide con el ID en el cuerpo de la solicitud.");
+            }
+
+            try
+            {
+                var permisoExistente = _permisoBLL.GetPermisoById(id);
+                if (permisoExistente == null)
+                {
+                    return Content(HttpStatusCode.NotFound, new { Message = $"Permiso con ID {id} no fue encontrado." });
+                }
+
+                _permisoBLL.Update(permisoTraido);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        // DELETE: api/Permisos/5
-        public void Delete(int id)
+        /// <summary>
+        /// DELETE: api/permisos/5
+        /// Elimina un permiso.
+        /// </summary>
+        [HttpDelete]
+        [Route("{id:int}")]
+        public IHttpActionResult Delete(int id)
         {
+            if (id <= 0)
+            {
+                return BadRequest("El ID proporcionado no es válido.");
+            }
+
+            try
+            {
+                var permisoExistente = _permisoBLL.GetPermisoById(id);
+                if (permisoExistente == null)
+                {
+                    return Content(HttpStatusCode.NotFound, new { Message = $"Permiso con ID {id} no fue encontrado." });
+                }
+                _permisoBLL.Delete(id);
+                return Ok(new { Message = $"Permiso con ID {id} ha sido eliminado." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
+
+        private Permiso DeserializarPermiso(JObject json)
+        {
+            if(json["EsFamilia"] == null)
+            {
+                throw new Exception("El campo 'Tipo' es obligatorio para determinar el tipo de permiso.");
+            }
+
+            Permiso permiso = null;
+
+            if ((bool)json["EsFamilia"])
+            {
+                if (json["Hijos"] == null)
+                {
+                    throw new Exception("El campo 'Hijos' es obligatorio para las familias.");
+                }
+                permiso = json.ToObject<Familia>();
+                var familia = permiso as Familia;
+                
+                familia.Hijos.Clear();
+                foreach (var hijoJson in json["Hijos"])
+                {
+                    familia.Hijos.Add(DeserializarPermiso((JObject)hijoJson));
+                }
+                return familia;
+            }
+            permiso = json.ToObject<Patente>();
+
+            return permiso;
+        }
+
     }
 }

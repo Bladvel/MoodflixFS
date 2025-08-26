@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using System.Web.UI.WebControls;
 
 namespace Backend.Controllers
 {
@@ -118,11 +119,11 @@ namespace Backend.Controllers
                 var emocionExistente = _emocionBLL.GetById(id);
                 if (emocionExistente == null)
                 {
-                    return NotFound();
+                    return Content(HttpStatusCode.NotFound, new { Message = $"Emocion con ID {id} no fue encontrada." });
                 }
 
                 _emocionBLL.Delete(id);
-                return Ok();
+                return Ok(new { Message = $"Emocion con ID {id} ha sido eliminado." });
             }
             catch (Exception ex)
             {
