@@ -143,85 +143,193 @@ namespace DAL
         }
 
 
+        //public int Create(Permiso permiso)
+        //{
+        //    using (var con = new SqlConnection(_connectionString))
+        //    {
+        //        var cmd = new SqlCommand("sp_CrearPermiso", con);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.AddWithValue("@Nombre", permiso.Nombre);
+        //        cmd.Parameters.AddWithValue("@EsFamilia", permiso is Familia);
+
+        //        con.Open();
+        //        permiso.Id = Convert.ToInt32(cmd.ExecuteScalar());
+
+        //    }
+
+        //    if(permiso.Id >0 )
+        //    {
+        //        GuardarHijos(permiso);
+        //    }
+
+        //    return permiso.Id;
+        //}
+
+
         public int Create(Permiso permiso)
         {
             using (var con = new SqlConnection(_connectionString))
             {
-                var cmd = new SqlCommand("sp_CrearPermiso", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@Nombre", permiso.Nombre);
-                cmd.Parameters.AddWithValue("@EsFamilia", permiso is Familia);
-
                 con.Open();
-                permiso.Id = Convert.ToInt32(cmd.ExecuteScalar());
+                var trx = con.BeginTransaction();
 
+
+                try {                     
+                    var createdPermiso = CreateBasicPermiso(permiso, con, trx);
+
+                    if (createdPermiso is Familia familia && familia.Hijos != null && familia.Hijos.Count > 0)
+                    {
+                        foreach (var hijo in familia.Hijos)
+                        {
+                            GuardarHijos(familia, hijo, con, trx);
+                        }
+                    }
+
+
+                    trx.Commit();
+                    return createdPermiso.Id;
+                }
+                catch
+                {
+                    trx.Rollback();
+                    throw;
+                }
             }
+        }
 
-            if(permiso.Id >0 )
+        private Permiso CreateBasicPermiso(Permiso permiso, SqlConnection con, SqlTransaction trx)
+        {
+            var cmd = new SqlCommand("sp_CrearPermiso", con, trx);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@Nombre", permiso.Nombre);
+            cmd.Parameters.AddWithValue("@EsFamilia", permiso is Familia);
+            permiso.Id = Convert.ToInt32(cmd.ExecuteScalar());
+            if (permiso.Id <= 0)
             {
-                GuardarHijos(permiso);
+                throw new Exception("No se pudo crear el permiso.");
             }
 
-            return permiso.Id;
+            return permiso;
+        }
+
+
+        private void GuardarHijos(Familia familia, Permiso hijo, SqlConnection con, SqlTransaction trx)
+        {
+            if (hijo.Id == 0)
+            {
+                var createdPermiso = CreateBasicPermiso(hijo, con, trx);
+
+                if (createdPermiso is Familia hijoFamilia && hijoFamilia.Hijos != null && hijoFamilia.Hijos.Count > 0)
+                {
+                    foreach (var nieto in hijoFamilia.Hijos)
+                    {
+                        GuardarHijos(hijoFamilia, nieto, con, trx);
+
+                    }
+                }
+            }
+
+            var cmdInsert = new SqlCommand("sp_AgregarHijoAFamilia", con, trx);
+            cmdInsert.CommandType = CommandType.StoredProcedure;
+            cmdInsert.Parameters.AddWithValue("@IdPadre", familia.Id);
+            cmdInsert.Parameters.AddWithValue("@IdHijo", hijo.Id);
+            cmdInsert.ExecuteNonQuery();
+
         }
 
         public void Update(Permiso permiso)
         {
             using (var con = new SqlConnection(_connectionString))
             {
-                var cmd = new SqlCommand("sp_ActualizarPermiso", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@Id", permiso.Id);
-                cmd.Parameters.AddWithValue("@Nombre", permiso.Nombre);
-                cmd.Parameters.AddWithValue("@EsFamilia", permiso is Familia);
-
-
                 con.Open();
-                cmd.ExecuteNonQuery();
-            }
-
-            if(permiso is Familia familia)
-            {
-                GuardarHijos(familia);
-            }
-        }
-
-        private void GuardarHijos(Permiso permiso)
-        {
-            using (var con = new SqlConnection(_connectionString))
-            {
-                con.Open();
-                
                 var trx = con.BeginTransaction();
                 try
                 {
-                    
-                    var cmdDelete = new SqlCommand("sp_VaciarHijosDeFamilia", con, trx);
-                    cmdDelete.CommandType = CommandType.StoredProcedure;
-                    cmdDelete.Parameters.AddWithValue("@IdPadre", permiso.Id);
-                    cmdDelete.ExecuteNonQuery();
-
+                    var cmd = new SqlCommand("sp_ActualizarPermiso", con, trx);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Id", permiso.Id);
+                    cmd.Parameters.AddWithValue("@Nombre", permiso.Nombre);
+                    cmd.Parameters.AddWithValue("@EsFamilia", permiso is Familia);
+                    cmd.ExecuteNonQuery();
                     if (permiso is Familia familia)
                     {
+                        var cmdDelete = new SqlCommand("sp_VaciarHijosDeFamilia", con, trx);
+                        cmdDelete.CommandType = CommandType.StoredProcedure;
+                        cmdDelete.Parameters.AddWithValue("@IdPadre", familia.Id);
+                        cmdDelete.ExecuteNonQuery();
                         foreach (var hijo in familia.Hijos)
                         {
-                            var cmdInsert = new SqlCommand("sp_AgregarHijoAFamilia", con, trx);
-                            cmdInsert.CommandType = CommandType.StoredProcedure;
-                            cmdInsert.Parameters.AddWithValue("@IdPadre", familia.Id);
-                            cmdInsert.Parameters.AddWithValue("@IdHijo", hijo.Id);
-                            cmdInsert.ExecuteNonQuery();
+                            GuardarHijos(familia, hijo, con, trx);
                         }
                     }
-
                     trx.Commit();
                 }
                 catch
                 {
                     trx.Rollback();
-                    throw; 
+                    throw;
                 }
             }
         }
+
+
+        //public void Update(Permiso permiso)
+        //{
+        //    using (var con = new SqlConnection(_connectionString))
+        //    {
+        //        var cmd = new SqlCommand("sp_ActualizarPermiso", con);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.AddWithValue("@Id", permiso.Id);
+        //        cmd.Parameters.AddWithValue("@Nombre", permiso.Nombre);
+        //        cmd.Parameters.AddWithValue("@EsFamilia", permiso is Familia);
+
+
+        //        con.Open();
+        //        cmd.ExecuteNonQuery();
+        //    }
+
+        //    if(permiso is Familia familia)
+        //    {
+        //        GuardarHijos(familia);
+        //    }
+        //}
+
+        //private void GuardarHijos(Permiso permiso)
+        //{
+        //    using (var con = new SqlConnection(_connectionString))
+        //    {
+        //        con.Open();
+
+        //        var trx = con.BeginTransaction();
+        //        try
+        //        {
+
+        //            var cmdDelete = new SqlCommand("sp_VaciarHijosDeFamilia", con, trx);
+        //            cmdDelete.CommandType = CommandType.StoredProcedure;
+        //            cmdDelete.Parameters.AddWithValue("@IdPadre", permiso.Id);
+        //            cmdDelete.ExecuteNonQuery();
+
+        //            if (permiso is Familia familia)
+        //            {
+        //                foreach (var hijo in familia.Hijos)
+        //                {
+        //                    var cmdInsert = new SqlCommand("sp_AgregarHijoAFamilia", con, trx);
+        //                    cmdInsert.CommandType = CommandType.StoredProcedure;
+        //                    cmdInsert.Parameters.AddWithValue("@IdPadre", familia.Id);
+        //                    cmdInsert.Parameters.AddWithValue("@IdHijo", hijo.Id);
+        //                    cmdInsert.ExecuteNonQuery();
+        //                }
+        //            }
+
+        //            trx.Commit();
+        //        }
+        //        catch
+        //        {
+        //            trx.Rollback();
+        //            throw; 
+        //        }
+        //    }
+        //}
 
         private Permiso Transform(DataRow row)
         {
