@@ -35,9 +35,12 @@ namespace BLL
 
             if (permiso is Familia familia)
             {
-                if (TieneReferenciaCircular(familia, new HashSet<int>()))
+                foreach (var hijo in familia.Hijos)
                 {
-                    throw new Exception("La familia no puede contener referencias circulares.");
+                    if (_permisoDAL.EsAncestro(hijo.Id, familia.Id))
+                    {
+                        throw new Exception($"Referencia circular detectada: La familia '{permiso.Nombre}' ya es parte de la jerarquía de '{hijo.Nombre}'.");
+                    }
                 }
 
             }
@@ -48,10 +51,10 @@ namespace BLL
                 permiso.Id = newId;
                 return permiso;
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
                 //2627 unique key exception
-                if (ex is SqlException sqlEx && sqlEx.Number == 2627)
+                if (ex.Number == 2627)
                 {
                     throw new Exception($"El permiso con el nombre '{permiso.Nombre}' ya existe.");
                 }
@@ -67,19 +70,22 @@ namespace BLL
                 throw new Exception("El ID del permiso para actualizar no es válido.");
             if (permiso is Familia familia)
             {
-                if (TieneReferenciaCircular(familia, new HashSet<int>()))
+                foreach(var hijo in familia.Hijos)
                 {
-                    throw new Exception("La familia no puede contener referencias circulares.");
+                    if(_permisoDAL.EsAncestro(hijo.Id, familia.Id))
+                    {
+                        throw new Exception($"Referencia circular detectada: La familia '{permiso.Nombre}' ya es parte de la jerarquía de '{hijo.Nombre}'.");
+                    }
                 }
             }
             try
             {
                 _permisoDAL.Update(permiso);
             }
-            catch (Exception ex)
+            catch (SqlException ex)
             {
                 //2627 unique key exception
-                if (ex is SqlException sqlEx && sqlEx.Number == 2627)
+                if (ex.Number == 2627)
                 {
                     throw new Exception($"El permiso con el nombre '{permiso.Nombre}' ya existe.");
                 }
@@ -112,36 +118,12 @@ namespace BLL
             _permisoDAL.Delete(id);
         }
 
+        [Obsolete]
         private bool TieneReferenciaCircular(Familia familia, HashSet<int> ancestros)
         {
-            if (ancestros.Contains(familia.Id))
-            {
-                return true;
-            }
-
-            if (familia.Hijos == null || familia.Hijos.Count == 0)
-            {
-                return false;
-            }
-
-            if (familia.Id > 0)
-            {
-                ancestros.Add(familia.Id);
-            }
-
-
-            foreach (var hijo in familia.Hijos)
-            {
-                if (hijo is Familia hijoFamilia)
-                {
-                    if (TieneReferenciaCircular(hijoFamilia, new HashSet<int>(ancestros)))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+           throw new NotImplementedException();
         }
+
+        
     }
 }

@@ -99,14 +99,16 @@ namespace Backend.Controllers
                 return BadRequest("El ID proporcionado no es válido.");
             }
 
-            Permiso permisoTraido = DeserializarPermiso(jsonPermiso);
-            if (id != permisoTraido.Id)
-            {
-                return BadRequest("El ID en la URL no coincide con el ID en el cuerpo de la solicitud.");
-            }
+            
 
             try
             {
+                Permiso permisoTraido = DeserializarPermiso(jsonPermiso);
+                if (id != permisoTraido.Id)
+                {
+                    return BadRequest("El ID en la URL no coincide con el ID en el cuerpo de la solicitud.");
+                }
+
                 var permisoExistente = _permisoBLL.GetPermisoById(id);
                 if (permisoExistente == null)
                 {
@@ -155,7 +157,7 @@ namespace Backend.Controllers
         {
             if(json["EsFamilia"] == null)
             {
-                throw new Exception("El campo 'Tipo' es obligatorio para determinar el tipo de permiso.");
+                throw new Exception("El campo 'EsFamilia' es obligatorio para determinar el tipo de permiso.");
             }
 
             Permiso permiso = null;
@@ -166,10 +168,10 @@ namespace Backend.Controllers
                 {
                     throw new Exception("El campo 'Hijos' es obligatorio para las familias.");
                 }
-                permiso = json.ToObject<Familia>();
-                var familia = permiso as Familia;
-                
-                familia.Hijos.Clear();
+                var familia = new Familia();
+                familia.Id = json["Id"]?.Value<int>() ?? 0;
+                familia.Nombre = json["Nombre"]?.Value<string>();
+
                 foreach (var hijoJson in json["Hijos"])
                 {
                     familia.Hijos.Add(DeserializarPermiso((JObject)hijoJson));

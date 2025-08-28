@@ -157,9 +157,9 @@ namespace DAL
 
             }
 
-            if(permiso.Id >0 && permiso is Familia permisoFamilia)
+            if(permiso.Id >0 )
             {
-                GuardarHijos(permisoFamilia);
+                GuardarHijos(permiso);
             }
 
             return permiso.Id;
@@ -173,6 +173,8 @@ namespace DAL
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@Id", permiso.Id);
                 cmd.Parameters.AddWithValue("@Nombre", permiso.Nombre);
+                cmd.Parameters.AddWithValue("@EsFamilia", permiso is Familia);
+
 
                 con.Open();
                 cmd.ExecuteNonQuery();
@@ -184,7 +186,7 @@ namespace DAL
             }
         }
 
-        private void GuardarHijos(Familia familia)
+        private void GuardarHijos(Permiso permiso)
         {
             using (var con = new SqlConnection(_connectionString))
             {
@@ -196,17 +198,19 @@ namespace DAL
                     
                     var cmdDelete = new SqlCommand("sp_VaciarHijosDeFamilia", con, trx);
                     cmdDelete.CommandType = CommandType.StoredProcedure;
-                    cmdDelete.Parameters.AddWithValue("@IdPadre", familia.Id);
+                    cmdDelete.Parameters.AddWithValue("@IdPadre", permiso.Id);
                     cmdDelete.ExecuteNonQuery();
 
-                    
-                    foreach (var hijo in familia.Hijos)
+                    if (permiso is Familia familia)
                     {
-                        var cmdInsert = new SqlCommand("sp_AgregarHijoAFamilia", con, trx);
-                        cmdInsert.CommandType = CommandType.StoredProcedure;
-                        cmdInsert.Parameters.AddWithValue("@IdPadre", familia.Id);
-                        cmdInsert.Parameters.AddWithValue("@IdHijo", hijo.Id);
-                        cmdInsert.ExecuteNonQuery();
+                        foreach (var hijo in familia.Hijos)
+                        {
+                            var cmdInsert = new SqlCommand("sp_AgregarHijoAFamilia", con, trx);
+                            cmdInsert.CommandType = CommandType.StoredProcedure;
+                            cmdInsert.Parameters.AddWithValue("@IdPadre", familia.Id);
+                            cmdInsert.Parameters.AddWithValue("@IdHijo", hijo.Id);
+                            cmdInsert.ExecuteNonQuery();
+                        }
                     }
 
                     trx.Commit();
@@ -298,6 +302,18 @@ namespace DAL
             }
         }
 
+        public bool EsAncestro(int idAncestro, int idDescendiente)
+        {
+            using (var con = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand("Select dbo.fn_EsAncestro(@IdAncestro, @IdDescendiente)", con);
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.AddWithValue("@IdAncestro", idAncestro);
+                cmd.Parameters.AddWithValue("@IdDescendiente", idDescendiente);
+                con.Open();
+                return (bool)cmd.ExecuteScalar();
+            }
+        }
 
     }
 }
