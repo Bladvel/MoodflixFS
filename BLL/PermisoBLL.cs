@@ -69,70 +69,65 @@ namespace BLL
             if (string.IsNullOrWhiteSpace(permiso.Nombre))
                 throw new Exception("El nombre del permiso no puede ser vacío.");
 
-            
-            ValidarJerarquia(permiso, new HashSet<int>());
+            if(permiso is Familia familia && (familia.Hijos != null && familia.Hijos.Count > 0))
+            {
+                
+                ValidarJerarquia(familia, new HashSet<Permiso>());
+            }
 
-            try
-            {
-                int newId = _permisoDAL.Create(permiso);
-                permiso.Id = newId;
-                return permiso;
-            }
-            catch (SqlException ex)
-            {
-                if (ex.Number == 2627)
-                {
-                    throw new Exception($"El permiso con el nombre '{permiso.Nombre}' ya existe.");
-                }
-                throw;
-            }
+            
+            int newId = _permisoDAL.Create(permiso);
+            permiso.Id = newId;
+            return permiso;
+            
+           
         }
 
-        /// <summary>
-        /// Método recursivo para validar la integridad de toda la jerarquía de un permiso.
-        /// </summary>
-        /// <param name="permisoActual">El nodo del árbol que se está validando.</param>
-        /// <param name="ancestros">La lista de padres por encima del nodo actual.</param>
-        private void ValidarJerarquia(Permiso permisoActual, HashSet<int> rutaActual)
+        
+        private void ValidarJerarquia(Permiso permisoActual, HashSet<Permiso> rutaActual)
         {
-            // Solo nos preocupan los permisos que ya tienen un ID,
-            // ya que los nuevos (ID=0) no pueden formar ciclos preexistentes.
-            if (permisoActual.Id != 0)
-            {
-                // VALIDACIÓN 1: Ciclo interno.
-                // ¿Ya hemos pasado por este permiso en este mismo camino?
-                if (rutaActual.Contains(permisoActual.Id))
-                {
-                    throw new Exception($"Referencia circular detectada: El permiso '{permisoActual.Nombre}' está anidado dentro de sí mismo.");
-                }
 
-                // Dejamos una "miga de pan" para marcar que hemos pasado por aquí.
-                rutaActual.Add(permisoActual.Id);
+            if(rutaActual.Contains(permisoActual))
+            {
+                throw new Exception($"Referencia circular detectada: El permiso Id:'{permisoActual.Id}''{permisoActual.Nombre}' está anidado dentro de sí mismo.");
             }
+
+            rutaActual.Add(permisoActual);
+
 
             if (permisoActual is Familia familia)
             {
+
                 foreach (var hijo in familia.Hijos)
                 {
-                    // VALIDACIÓN 2: Ciclo contra la Base de Datos.
-                    // ¿El hijo que queremos agregar ya es un "abuelo" de la familia actual?
-                    if (familia.Id != 0 && hijo.Id != 0 && _permisoDAL.EsAncestro(hijo.Id, familia.Id))
+                    //Caso base: una familia no puede ser hija de sí misma
+                    if (hijo.Id == familia.Id)
                     {
-                        throw new Exception($"Referencia circular detectada: La familia '{familia.Nombre}' ya es parte de la jerarquía de '{hijo.Nombre}'.");
+                        throw new Exception($"Referencia circular detectada: La familia '{familia.Nombre}' no puede ser hija de sí misma.");
                     }
 
-                    // Llamada recursiva: bajamos un nivel para inspeccionar al hijo.
-                    // Le pasamos la misma bolsa de migas.
-                    ValidarJerarquia(hijo, rutaActual);
+                    //Si el hijo es una familia ya guardada, verifico si la familia actual es ancestro de esa familia
+                    if (hijo is Familia hijoComoFamilia)
+                    {
+                        //Si el hijo ya está guardado, verifico la jerarquía
+                        if (hijoComoFamilia.Id != 0 && familia.Id != 0 && _permisoDAL.EsAncestro(hijoComoFamilia.Id, familia.Id))
+                        {
+                            // Si el hijoComoFamilia ya es ancestro de la familia a guardar, hay una referencia circular
+                            throw new Exception($"Referencia circular detectada: La familia '{familia.Nombre}' ya es parte de la jerarquía de '{hijo.Nombre}'.");
+                            
+                        }
+
+                        //Si el hijo no está guardado, hago la validación recursiva
+                        
+                        ValidarJerarquia(hijoComoFamilia, rutaActual);
+                        
+                    }
+
                 }
+
             }
 
-            // BACKTRACKING: Ya terminamos de revisar este permiso y todos sus descendientes.
-            // Recogemos nuestra "miga de pan" para no confundir la validación de otras ramas del árbol.
-            if (permisoActual.Id != 0)
-            {
-                rutaActual.Remove(permisoActual.Id);
-            }
+            rutaActual.Remove(permisoActual);
         }
 
 
@@ -144,7 +139,7 @@ namespace BLL
             if (permiso.Id <= 0)
                 throw new Exception("El ID del permiso para actualizar no es válido.");
 
-            ValidarJerarquia(permiso, new HashSet<int>());
+            //ValidarJerarquia(permiso, new HashSet<int>());
             try
             {
                 _permisoDAL.Update(permiso);

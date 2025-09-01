@@ -55,14 +55,13 @@ namespace Backend.Controllers
             return Ok(permiso);
         }
 
+
         /// <summary>
         /// POST: api/permisos
         /// Crea un nuevo permiso.
         /// </summary>
         [HttpPost]
         [Route("")]
-
-        // POST: api/permisos
         public IHttpActionResult Create([FromBody] JObject jsonPermiso)
         {
             if (jsonPermiso == null)

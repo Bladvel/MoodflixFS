@@ -189,9 +189,13 @@ namespace DAL
                     trx.Commit();
                     return createdPermiso.Id;
                 }
-                catch
+                catch(Exception ex)
                 {
                     trx.Rollback();
+                    if (ex is SqlException sqlEx && sqlEx.Number == 2627)
+                    {
+                        throw new Exception($"El permiso con el nombre '{permiso.Nombre}' ya existe.");
+                    }
                     throw;
                 }
             }
