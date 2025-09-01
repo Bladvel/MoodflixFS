@@ -17,5 +17,30 @@ namespace BE
         [StringLength(100)]
         [JsonProperty(Order = 2)]
         public string Nombre { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || !(obj is Permiso))
+            {
+                return false;
+            }
+
+            if (this.Id == 0)
+            {
+                return object.ReferenceEquals(this, obj);
+            }
+
+            return this.Id == ((Permiso)obj).Id;
+        }
+
+        public override int GetHashCode()
+        {
+            if (this.Id == 0)
+            {
+                return base.GetHashCode();
+            }
+
+            return this.Id.GetHashCode();
+        }
     }
 }

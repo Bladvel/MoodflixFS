@@ -26,42 +26,6 @@ namespace BLL
         }
 
 
-        //public Permiso Create(Permiso permiso)
-        //{
-        //    if (permiso == null)
-        //        throw new ArgumentNullException(nameof(permiso), "El permiso no puede ser nulo.");
-        //    if (string.IsNullOrWhiteSpace(permiso.Nombre))
-        //        throw new Exception("El nombre del permiso no puede ser vacío.");
-
-        //    if (permiso is Familia familia)
-        //    {
-        //        foreach (var hijo in familia.Hijos)
-        //        {
-        //            if (familia.Id != 0 && hijo.Id != 0 && _permisoDAL.EsAncestro(hijo.Id, familia.Id))
-        //            {
-        //                throw new Exception($"Referencia circular detectada: La familia '{permiso.Nombre}' ya es parte de la jerarquía de '{hijo.Nombre}'.");
-        //            }
-        //        }
-
-        //    }
-
-        //    try
-        //    {
-        //        int newId = _permisoDAL.Create(permiso);
-        //        permiso.Id = newId;
-        //        return permiso;
-        //    }
-        //    catch (SqlException ex)
-        //    {
-        //        //2627 unique key exception
-        //        if (ex.Number == 2627)
-        //        {
-        //            throw new Exception($"El permiso con el nombre '{permiso.Nombre}' ya existe.");
-        //        }
-        //        throw;
-        //    }
-        //}
-
         public Permiso Create(Permiso permiso)
         {
             if (permiso == null)
@@ -139,20 +103,16 @@ namespace BLL
             if (permiso.Id <= 0)
                 throw new Exception("El ID del permiso para actualizar no es válido.");
 
-            //ValidarJerarquia(permiso, new HashSet<int>());
-            try
+            if (permiso is Familia familia && (familia.Hijos != null && familia.Hijos.Count > 0))
             {
-                _permisoDAL.Update(permiso);
+
+                ValidarJerarquia(familia, new HashSet<Permiso>());
             }
-            catch (SqlException ex)
-            {
-                //2627 unique key exception
-                if (ex.Number == 2627)
-                {
-                    throw new Exception($"El permiso con el nombre '{permiso.Nombre}' ya existe.");
-                }
-                throw;
-            }
+
+            
+            _permisoDAL.Update(permiso);
+            
+            
         }
 
         public void GuardarPermisosDeUsuario(Usuario usuario)
@@ -176,6 +136,9 @@ namespace BLL
         {
             if (id <= 0)
                 throw new Exception("El ID del permiso para eliminar no es válido.");
+
+            if(_permisoDAL.GetById(id) == null)
+                throw new Exception("El permiso que se intenta eliminar no existe.");   
 
             _permisoDAL.Delete(id);
         }
