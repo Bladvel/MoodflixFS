@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BE", "BE\BE.csproj", "{613E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Services", "Services\Services.csproj", "{1B118F18-57DE-4FD2-8492-817E74D6152E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileServices", "FileServices\FileServices.csproj", "{B6BC3D6A-95F6-4C98-961B-4E29898B44FB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{1B118F18-57DE-4FD2-8492-817E74D6152E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B118F18-57DE-4FD2-8492-817E74D6152E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B118F18-57DE-4FD2-8492-817E74D6152E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6BC3D6A-95F6-4C98-961B-4E29898B44FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6BC3D6A-95F6-4C98-961B-4E29898B44FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6BC3D6A-95F6-4C98-961B-4E29898B44FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6BC3D6A-95F6-4C98-961B-4E29898B44FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
