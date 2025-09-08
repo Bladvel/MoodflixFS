@@ -56,27 +56,18 @@ namespace BLL
             if (producto.Id <= 0)
                 throw new Exception("El ID del producto para actualizar no es válido.");
 
-            try
-            {
-                _productoDAL.Update(producto);
-            }
-            catch (SqlException ex)
-            {
-                if (ex.Number == 2627 && producto is Libro libro)
-                {
-                    throw new Exception($"Ya existe otro libro con el ISBN '{libro.ISBN}'.");
-                }
-                throw;
-            }
+            _productoDAL.Update(producto);
+
         }
 
 
         public void Delete(int id)
         {
             if (id <= 0)
-            {
                 throw new Exception("El ID proporcionado para eliminar no es válido.");
-            }
+            
+            if(_productoDAL.GetById(id) == null)
+                throw new Exception($"No se encontró ningún producto con ID {id}.");
 
             _productoDAL.Delete(id);
         }

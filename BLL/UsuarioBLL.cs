@@ -46,18 +46,56 @@ namespace BLL
             return usuario;
         }
 
-        public void Login(Usuario usuario)
+        public void Update(Usuario usuario)
+        {
+            if (usuario == null)
+                throw new ArgumentNullException(nameof(usuario), "El usuario no puede ser nulo.");
+            if (usuario.Id <= 0)
+                throw new Exception("El ID del usuario para actualizar no es válido.");
+
+            _usuarioDAL.Update(usuario);
+        }
+
+        public void Delete(int id)
+        {
+            if (id <= 0)
+                throw new Exception("El ID del usuario para eliminar no es válido.");
+
+            if (_usuarioDAL.GetById(id) == null)
+                throw new Exception($"El usuario con ID {id} no existe.");
+
+            _usuarioDAL.Delete(id);
+        }
+
+
+        public Usuario Login(Usuario usuario)
         {
             Usuario usuarioRegistrado = _usuarioDAL.GetByEmail(usuario.Email);
             if (usuarioRegistrado == null)
                 throw new Exception("Usuario no encontrado.");
 
+            if (usuarioRegistrado.Bloqueado)
+                throw new Exception("El usuario está bloqueado.");
+
+
             string passwordPlana = usuario.PasswordHash;
 
-            if (!CryptoManager.VerifyPassword(passwordPlana, usuarioRegistrado.PasswordHash))
-                throw new Exception("Contraseña incorrecta.");
-        }
+            if (!CryptoManager.VerificarPassword(passwordPlana, usuarioRegistrado.PasswordHash))
+            {
+                usuarioRegistrado.IntentosFallidos++;
+                if(usuarioRegistrado.IntentosFallidos >=3)
+                    usuarioRegistrado.Bloqueado = true;
+                _usuarioDAL.Update(usuarioRegistrado);
+                throw new Exception("Email o Contraseña incorrecta.");
+            }
+            else
+            {
+                usuarioRegistrado.IntentosFallidos = 0;
+                _usuarioDAL.Update(usuarioRegistrado);
+                return usuarioRegistrado;
 
+            }
+        }
 
         private void ValidarPassword(string password)
         {

@@ -27,7 +27,7 @@ namespace Services
 
         }
 
-        public static bool VerifyPassword(string passwordPlana, string passwordHash)
+        public static bool VerificarPassword(string passwordPlana, string passwordHash)
         {
             string hashedInput = HashPassword(passwordPlana);
             return hashedInput.Equals(passwordHash, StringComparison.OrdinalIgnoreCase);

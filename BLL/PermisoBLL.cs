@@ -143,11 +143,6 @@ namespace BLL
             _permisoDAL.Delete(id);
         }
 
-        [Obsolete]
-        private bool TieneReferenciaCircular(Familia familia, HashSet<int> ancestros)
-        {
-           throw new NotImplementedException();
-        }
 
         
     }
