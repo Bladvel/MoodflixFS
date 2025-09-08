@@ -9,7 +9,7 @@ namespace Services
 {
     public static class CryptoManager
     {
-        public static string HashSha256(string text)
+        public static string HashPassword(string text)
         {
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
@@ -25,6 +25,12 @@ namespace Services
                 return stringBuilder.ToString().ToUpperInvariant();
             }
 
+        }
+
+        public static bool VerifyPassword(string passwordPlana, string passwordHash)
+        {
+            string hashedInput = HashPassword(passwordPlana);
+            return hashedInput.Equals(passwordHash, StringComparison.OrdinalIgnoreCase);
         }
     }
 }
