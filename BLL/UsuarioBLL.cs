@@ -35,13 +35,11 @@ namespace BLL
             if(_usuarioDAL.GetByEmail(usuario.Email) != null)
                 throw new Exception($"El email {usuario.Email} ya está en uso.");
 
-
-            // La contraseña en este punto es la contraseña en texto plano proporcionada por el usuario
-            string passwordPlana = usuario.PasswordHash;
+            string passwordPlana = usuario.Password;
 
             ValidarPassword(passwordPlana);
 
-            usuario.PasswordHash = CryptoManager.HashPassword(passwordPlana);
+            usuario.Password = CryptoManager.HashPassword(passwordPlana);
             usuario.Id = _usuarioDAL.Create(usuario);
             return usuario;
         }
@@ -78,9 +76,9 @@ namespace BLL
                 throw new Exception("El usuario está bloqueado.");
 
 
-            string passwordPlana = usuario.PasswordHash;
+            string passwordPlana = usuario.Password;
 
-            if (!CryptoManager.VerificarPassword(passwordPlana, usuarioRegistrado.PasswordHash))
+            if (!CryptoManager.VerificarPassword(passwordPlana, usuarioRegistrado.Password))
             {
                 usuarioRegistrado.IntentosFallidos++;
                 if(usuarioRegistrado.IntentosFallidos >=3)

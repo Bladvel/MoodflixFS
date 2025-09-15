@@ -21,7 +21,7 @@ namespace BE
         public string Email { get; set; }
 
         [Required(ErrorMessage = "La contraseña es requerida")]
-        public string PasswordHash { get; set; }
+        public string Password { get; set; }
 
         public int IntentosFallidos { get; set; }
 

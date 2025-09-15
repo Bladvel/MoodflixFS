@@ -31,22 +31,11 @@ namespace BLL
             if (producto == null)
                 throw new ArgumentNullException(nameof(producto), "El producto no puede ser nulo.");
 
-            try
-            {
-                int newId = _productoDAL.Create(producto);
-                producto.Id = newId;
-                return producto;
-            }
-            catch (SqlException ex)
-            {
-                //2627 unique key exception
-                if (ex.Number == 2627 && producto is Libro libro)
-                {
-                    throw new Exception($"El libro con el ISBN '{libro.ISBN}' ya existe.");
-                }
+            int newId = _productoDAL.Create(producto);
+            producto.Id = newId;
+            return producto;
+            
 
-                throw;
-            }
         }
 
         public void Update(Producto producto)

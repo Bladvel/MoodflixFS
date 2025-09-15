@@ -22,6 +22,8 @@ namespace Backend.Controllers
         /// POST: api/libros
         /// Crea un nuevo producto de tipo Libro.
         /// </summary>
+        [HttpPost]
+        [Route("")]
         public IHttpActionResult Create([FromBody] Libro libro)
         {
             if (!ModelState.IsValid)

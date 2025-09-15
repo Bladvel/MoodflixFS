@@ -35,23 +35,10 @@ namespace BLL
             if (string.IsNullOrWhiteSpace(emocion.Nombre))
                 throw new Exception("El nombre de la emoción es un campo requerido.");
 
+            int newId = _emocionDAL.Create(emocion);
+            emocion.Id = newId;
+            return emocion;
 
-            try
-            {
-                int newId = _emocionDAL.Create(emocion);
-                emocion.Id = newId;
-                return emocion;
-            }
-            catch (Exception ex)
-            {
-                //2627 unique key exception
-                if (ex is SqlException sqlEx && sqlEx.Number == 2627)
-                {
-                    throw new Exception($"La emoción con el nombre '{emocion.Nombre}' ya existe.");
-                }
-
-                throw;
-            }
         }
 
         public void Update(Emocion emocion)
