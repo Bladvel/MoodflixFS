@@ -20,7 +20,7 @@ namespace DAL
                 Id = (int)row["Id"],
                 NombreUsuario = (string)row["NombreUsuario"],
                 Email = (string)row["Email"],
-                Password = (string)row["PasswordHash"],
+                PasswordHash = (string)row["PasswordHash"],
                 IntentosFallidos = (int)row["IntentosFallidos"],
                 Bloqueado = (bool)row["Bloqueado"]
             };
@@ -40,7 +40,7 @@ namespace DAL
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@NombreUsuario", entity.NombreUsuario);
                 cmd.Parameters.AddWithValue("@Email", entity.Email);
-                cmd.Parameters.AddWithValue("@PasswordHash", entity.Password);
+                cmd.Parameters.AddWithValue("@PasswordHash", entity.PasswordHash);
 
                 con.Open();
                 return Convert.ToInt32(cmd.ExecuteScalar());
@@ -56,7 +56,7 @@ namespace DAL
                 cmd.Parameters.AddWithValue("@Id", entity.Id);
                 cmd.Parameters.AddWithValue("@NombreUsuario", entity.NombreUsuario);
                 cmd.Parameters.AddWithValue("@Email", entity.Email);
-                cmd.Parameters.AddWithValue("@PasswordHash", entity.Password);
+                cmd.Parameters.AddWithValue("@PasswordHash", entity.PasswordHash);
                 cmd.Parameters.AddWithValue("@IntentosFallidos", entity.IntentosFallidos);
                 cmd.Parameters.AddWithValue("@Bloqueado", entity.Bloqueado);
 

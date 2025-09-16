@@ -25,7 +25,7 @@ namespace BLL
             return _usuarioDAL.GetById(id);
         }
 
-        public Usuario Create(Usuario usuario)
+        public Usuario Create(Usuario usuario, string password)
         {
             if(usuario == null)
                 throw new ArgumentNullException(nameof(usuario), "El usuario no puede ser nulo.");
@@ -35,11 +35,10 @@ namespace BLL
             if(_usuarioDAL.GetByEmail(usuario.Email) != null)
                 throw new Exception($"El email {usuario.Email} ya está en uso.");
 
-            string passwordPlana = usuario.Password;
 
-            ValidarPassword(passwordPlana);
+            ValidarPassword(password);
 
-            usuario.Password = CryptoManager.HashPassword(passwordPlana);
+            usuario.PasswordHash = CryptoManager.HashPassword(password);
             usuario.Id = _usuarioDAL.Create(usuario);
             return usuario;
         }
@@ -76,9 +75,9 @@ namespace BLL
                 throw new Exception("El usuario está bloqueado.");
 
 
-            string passwordPlana = usuario.Password;
+            string passwordPlana = usuario.PasswordHash;
 
-            if (!CryptoManager.VerificarPassword(passwordPlana, usuarioRegistrado.Password))
+            if (!CryptoManager.VerificarPassword(passwordPlana, usuarioRegistrado.PasswordHash))
             {
                 usuarioRegistrado.IntentosFallidos++;
                 if(usuarioRegistrado.IntentosFallidos >=3)
