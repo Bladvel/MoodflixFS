@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Web.Http;
+using Backend.Infrastructure;
 
 namespace Backend.Controllers
 {
@@ -19,10 +20,10 @@ namespace Backend.Controllers
         private readonly UsuarioBLL _usuarioBLL = new UsuarioBLL();
         private readonly PermisoBLL _permisoBLL = new PermisoBLL();
 
+
         /// <summary>
         /// GET: api/usuarios
         /// Obtiene una lista de todos los usuarios.
-        /// (Endpoint protegido, solo para administradores).
         /// </summary>
         [HttpGet]
         [Route("")]
@@ -32,6 +33,7 @@ namespace Backend.Controllers
             usuarios.ForEach(u => u.PasswordHash = null);
             return Ok(usuarios);
         }
+
 
         /// <summary>
         /// GET: api/usuarios/5
@@ -56,7 +58,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpPost]
         [Route("")]
-        //[AllowAnonymous]
+        [AllowAnonymous]
         public IHttpActionResult Registrar([FromBody] RegistroModel model)
         {
             if (!ModelState.IsValid)
@@ -86,7 +88,7 @@ namespace Backend.Controllers
 
         /// <summary>
         /// PUT: api/usuarios/5
-        /// Actualiza los datos básicos de un usuario (no la contraseña ni los permisos).
+        /// Actualiza los datos básicos de un usuario (no los permisos).
         /// </summary>
         [HttpPut]
         [Route("{id:int}")]
@@ -159,6 +161,20 @@ namespace Backend.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+
+
+        /// <summary>
+        /// Endpoint para probar el atributo de permisos
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("prohibido")]
+        [CustomAuthorize(Permissions ="AccesoProhibido")]
+        public IHttpActionResult GetProhibido()
+        {
+            return Ok(new { Message = "Acceso Aceptado! Tiene permisos para acceder a este recurso." });
         }
     }
 }
