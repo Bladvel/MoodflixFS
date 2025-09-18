@@ -88,6 +88,8 @@ namespace BLL
             else
             {
                 usuarioRegistrado.IntentosFallidos = 0;
+
+
                 _usuarioDAL.Update(usuarioRegistrado);
                 return usuarioRegistrado;
 

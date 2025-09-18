@@ -26,7 +26,6 @@ namespace BE
         [StringLength(20)]
         public string CodigoPostal { get; set; }
 
-        // La propiedad de navegación, que llenaremos explícitamente cuando sea necesario.
         public Usuario Usuario { get; set; }
     }
 }

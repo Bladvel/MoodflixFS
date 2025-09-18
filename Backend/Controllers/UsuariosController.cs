@@ -1,6 +1,7 @@
 ﻿using Backend.Models;
 using BE;
 using BLL;
+using Services;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,9 @@ using System.Web.Http;
 
 namespace Backend.Controllers
 {
+    /// <summary>
+    /// Controlador para la gestión de usuarios.
+    /// </summary>
     [RoutePrefix("api/usuarios")]
     public class UsuariosController : ApiController
     {
@@ -110,7 +114,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpPut]
         [Route("{id:int}/permisos")]
-        public IHttpActionResult AsignarPermisos(int id, [FromBody] List<Permiso> permisos)
+        public IHttpActionResult AsignarPermisos(int id, [FromBody] List<JObject> permisos)
         {
             try
             {
@@ -120,7 +124,14 @@ namespace Backend.Controllers
                     return NotFound();
                 }
 
-                usuario.Permisos = permisos;
+                if (permisos != null)
+                {
+                    foreach (JObject p in permisos)
+                    {
+                        usuario.Permisos.Add(PermisoSerializer.Deserializar(p));
+                    }
+                }
+
                 _permisoBLL.GuardarPermisosDeUsuario(usuario);
 
                 return Ok();

@@ -8,6 +8,7 @@ using System.Web.Http;
 using System.Web.UI.WebControls;
 using BE;
 using BLL;
+using Services;
 using Newtonsoft.Json.Linq;
 
 namespace Backend.Controllers
@@ -71,7 +72,7 @@ namespace Backend.Controllers
 
             try
             {
-                var createdPermiso = _permisoBLL.Create(DeserializarPermiso(jsonPermiso));
+                var createdPermiso = _permisoBLL.Create(PermisoSerializer.Deserializar(jsonPermiso));
                 return CreatedAtRoute("GetPermisoById", new { id = createdPermiso.Id }, createdPermiso);
             }
             catch (Exception ex)
@@ -102,7 +103,7 @@ namespace Backend.Controllers
 
             try
             {
-                Permiso permisoTraido = DeserializarPermiso(jsonPermiso);
+                Permiso permisoTraido = PermisoSerializer.Deserializar(jsonPermiso);
                 if (id != permisoTraido.Id)
                 {
                     return BadRequest("El ID en la URL no coincide con el ID en el cuerpo de la solicitud.");
@@ -152,35 +153,35 @@ namespace Backend.Controllers
             }
         }
 
-        private Permiso DeserializarPermiso(JObject json)
-        {
-            if(json["EsFamilia"] == null)
-            {
-                throw new Exception("El campo 'EsFamilia' es obligatorio para determinar el tipo de permiso.");
-            }
+        //private Permiso DeserializarPermiso(JObject json)
+        //{
+        //    if(json["EsFamilia"] == null)
+        //    {
+        //        throw new Exception("El campo 'EsFamilia' es obligatorio para determinar el tipo de permiso.");
+        //    }
 
-            Permiso permiso = null;
+        //    Permiso permiso = null;
 
-            if ((bool)json["EsFamilia"])
-            {
-                if (json["Hijos"] == null)
-                {
-                    throw new Exception("El campo 'Hijos' es obligatorio para las familias.");
-                }
-                var familia = new Familia();
-                familia.Id = json["Id"]?.Value<int>() ?? 0;
-                familia.Nombre = json["Nombre"]?.Value<string>();
+        //    if ((bool)json["EsFamilia"])
+        //    {
+        //        if (json["Hijos"] == null)
+        //        {
+        //            throw new Exception("El campo 'Hijos' es obligatorio para las familias.");
+        //        }
+        //        var familia = new Familia();
+        //        familia.Id = json["Id"]?.Value<int>() ?? 0;
+        //        familia.Nombre = json["Nombre"]?.Value<string>();
 
-                foreach (var hijoJson in json["Hijos"])
-                {
-                    familia.Hijos.Add(DeserializarPermiso((JObject)hijoJson));
-                }
-                return familia;
-            }
-            permiso = json.ToObject<Patente>();
+        //        foreach (var hijoJson in json["Hijos"])
+        //        {
+        //            familia.Hijos.Add(DeserializarPermiso((JObject)hijoJson));
+        //        }
+        //        return familia;
+        //    }
+        //    permiso = json.ToObject<Patente>();
 
-            return permiso;
-        }
+        //    return permiso;
+        //}
 
     }
 }

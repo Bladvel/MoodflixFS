@@ -1,6 +1,7 @@
 ﻿using Backend.Models;
 using BE;
 using BLL;
+using Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,9 @@ using System.Web.Http;
 
 namespace Backend.Controllers
 {
+    /// <summary>
+    /// Controlador para la autenticación de usuarios.
+    /// </summary>
     [RoutePrefix("api/auth")]
     public class AuthController : ApiController
     {
@@ -21,7 +25,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpPost]
         [Route("login")]
-        //[AllowAnonymous]
+        [AllowAnonymous]
         public IHttpActionResult Login([FromBody] LoginModel model)
         {
 
@@ -40,8 +44,8 @@ namespace Backend.Controllers
                 var usuarioRegistrado = _usuarioBLL.Login(usuarioIngresante);
 
                 usuarioRegistrado.PasswordHash = null;
-
-                return Ok(usuarioRegistrado);
+                var token = TokenService.GenerateToken(usuarioRegistrado);
+                return Ok(new { token });
             }
             catch (Exception ex)
             {

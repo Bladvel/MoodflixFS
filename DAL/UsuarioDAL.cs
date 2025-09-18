@@ -23,6 +23,7 @@ namespace DAL
                 PasswordHash = (string)row["PasswordHash"],
                 IntentosFallidos = (int)row["IntentosFallidos"],
                 Bloqueado = (bool)row["Bloqueado"]
+
             };
 
             

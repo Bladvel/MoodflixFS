@@ -22,11 +22,9 @@ namespace BE
 
         [Required(ErrorMessage = "La contraseña es requerida")]
         public string PasswordHash { get; set; }
-
         public int IntentosFallidos { get; set; }
-
-
         public bool Bloqueado { get; set; }
+        public string SessionToken { get; set; }
 
 
         public ICollection<Direccion> Direcciones { get; set; }
