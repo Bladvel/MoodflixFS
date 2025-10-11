@@ -117,6 +117,37 @@ namespace DAL
             return null;
         }
 
+        public List<Usuario> GetByIds(IEnumerable<int> ids)
+        {
+            var dtIds = new DataTable();
+            dtIds.Columns.Add("Id", typeof(int));
+            foreach (var id in ids.Distinct()) 
+            {
+                dtIds.Rows.Add(id);
+            }
+
+            var dtUsuarios = new DataTable();
+            using (var con = new SqlConnection(_connectionString))
+            {
+                var da = new SqlDataAdapter("sp_ListarUsuariosPorIds", con);
+                da.SelectCommand.CommandType = CommandType.StoredProcedure;
+
+                var sqlParam = da.SelectCommand.Parameters.AddWithValue("@Ids", dtIds);
+                sqlParam.SqlDbType = SqlDbType.Structured;
+
+                da.Fill(dtUsuarios);
+            }
+
+            var list = new List<Usuario>();
+            foreach (DataRow row in dtUsuarios.Rows)
+            {
+                list.Add(Transform(row));
+            }
+
+            return list;
+
+        }
+
 
         public Usuario GetByEmail(string email)
         {
