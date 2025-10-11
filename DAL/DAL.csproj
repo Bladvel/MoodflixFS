@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BitacoraDAL.cs" />
     <Compile Include="EmocionDAL.cs" />
     <Compile Include="Mapper.cs" />
     <Compile Include="PermisoDAL.cs" />

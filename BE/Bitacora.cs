@@ -15,6 +15,7 @@ namespace BE
         public TipoModulo Modulo { get; set; }
         public TipoOperacion Operacion { get; set; }
         public int Criticidad { get; set; }
+        public string Mensaje { get; set; }
         public Bitacora()
         {
             Fecha = DateTime.Now;
