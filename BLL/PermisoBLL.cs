@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Types;
 using DAL;
 using System;
 using System.Collections.Generic;
@@ -42,9 +43,19 @@ namespace BLL
             
             int newId = _permisoDAL.Create(permiso);
             permiso.Id = newId;
+
+            BitacoraBLL.Instance.Registrar(new Bitacora
+            {
+                Modulo = TipoModulo.Permisos,
+                Operacion = TipoOperacion.Alta,
+                Criticidad = 2,
+                Mensaje = $"Se creó un nuevo permiso: '{permiso.Nombre}' (ID: {permiso.Id})."
+
+            });
+
+
             return permiso;
-            
-           
+       
         }
 
         
@@ -108,9 +119,16 @@ namespace BLL
 
                 ValidarJerarquia(familia, new HashSet<Permiso>());
             }
-
             
             _permisoDAL.Update(permiso);
+
+            BitacoraBLL.Instance.Registrar(new Bitacora
+            {
+                Modulo = TipoModulo.Permisos,
+                Operacion = TipoOperacion.Actualizacion,
+                Criticidad = 2,
+                Mensaje = $"Se editó el permiso: '{permiso.Nombre}' (ID: {permiso.Id})."
+            });
             
             
         }
@@ -137,10 +155,20 @@ namespace BLL
             if (id <= 0)
                 throw new Exception("El ID del permiso para eliminar no es válido.");
 
-            if(_permisoDAL.GetById(id) == null)
+            var permiso = _permisoDAL.GetById(id);
+
+            if (permiso == null)
                 throw new Exception("El permiso que se intenta eliminar no existe.");   
 
             _permisoDAL.Delete(id);
+
+            BitacoraBLL.Instance.Registrar(new Bitacora
+            {
+                Modulo = TipoModulo.Permisos,
+                Operacion = TipoOperacion.Baja,
+                Criticidad = 4,
+                Mensaje = $"Se eliminó el permiso: '{permiso.Nombre}' (ID: {permiso.Id})."
+            });
         }
 
 

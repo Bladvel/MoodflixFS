@@ -10,14 +10,14 @@ namespace BE.Types
     {
         InicioSesion,
         Emociones,
-        Peliculas,
-        Libros,
-        Ambos,
+        Productos,
         Bitacora,
         LibroOPelicula,
         Backup,
         Carrito,
         ABM,
         Desconocido,
+        Permisos,
+        Usuarios
     }
 }

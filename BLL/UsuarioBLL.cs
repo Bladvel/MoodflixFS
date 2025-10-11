@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BE;
+using BE.Types;
 using DAL;
 using Services;
 
@@ -40,6 +41,15 @@ namespace BLL
 
             usuario.PasswordHash = CryptoManager.HashPassword(password);
             usuario.Id = _usuarioDAL.Create(usuario);
+
+            BitacoraBLL.Instance.Registrar(new Bitacora
+            {
+                Modulo = TipoModulo.Usuarios,
+                Operacion = TipoOperacion.Alta,
+                Criticidad = 2,
+                Mensaje = $"Se creo el Usuario: {usuario.NombreUsuario}, {usuario.Id}"
+            });
+
             return usuario;
         }
 
@@ -51,6 +61,14 @@ namespace BLL
                 throw new Exception("El ID del usuario para actualizar no es válido.");
 
             _usuarioDAL.Update(usuario);
+
+            BitacoraBLL.Instance.Registrar(new Bitacora
+            {
+                Modulo = TipoModulo.Usuarios,
+                Operacion = TipoOperacion.Actualizacion,
+                Criticidad = 3,
+                Mensaje = $"Se Actualizo el Usuario: {usuario.NombreUsuario}, {usuario.Id}"
+            });
         }
 
         public void Delete(int id)
@@ -58,10 +76,20 @@ namespace BLL
             if (id <= 0)
                 throw new Exception("El ID del usuario para eliminar no es válido.");
 
-            if (_usuarioDAL.GetById(id) == null)
+            var usuario = _usuarioDAL.GetById(id);
+
+            if (usuario == null)
                 throw new Exception($"El usuario con ID {id} no existe.");
 
             _usuarioDAL.Delete(id);
+
+            BitacoraBLL.Instance.Registrar(new Bitacora
+            {
+                Modulo = TipoModulo.Usuarios,
+                Operacion = TipoOperacion.Baja,
+                Criticidad = 3,
+                Mensaje = $"Se elimino el Usuario: {usuario.NombreUsuario}, {usuario.Id}"
+            });
         }
 
 

@@ -11,5 +11,8 @@ namespace BE.Types
         Login,
         Logout,
         Desconocida,
+        Alta,
+        Actualizacion,
+        Baja
     }
 }

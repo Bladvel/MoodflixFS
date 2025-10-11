@@ -1,4 +1,5 @@
 ﻿using BE;
+using BE.Types;
 using DAL;
 using System;
 using System.Collections.Generic;
@@ -12,8 +13,7 @@ namespace BLL
     public class EmocionBLL
     {
         private readonly EmocionDAL _emocionDAL = new EmocionDAL();
-
-
+ 
         public List<Emocion> GetAll()
         {
             return _emocionDAL.GetAll();
@@ -37,6 +37,15 @@ namespace BLL
 
             int newId = _emocionDAL.Create(emocion);
             emocion.Id = newId;
+
+            BitacoraBLL.Instance.Registrar(new Bitacora
+            {
+                Modulo = TipoModulo.Emociones,
+                Operacion = TipoOperacion.Alta,
+                Criticidad = 2,
+                Mensaje = $"Se creo la emocion: {emocion.Nombre}, {emocion.Id}",
+            });
+
             return emocion;
 
         }
@@ -49,7 +58,15 @@ namespace BLL
                 throw new Exception("El ID de la emoción para actualizar no es válido.");
 
             _emocionDAL.Update(emocion);
-            
+
+            BitacoraBLL.Instance.Registrar(new Bitacora
+            {
+                Modulo = TipoModulo.Emociones,
+                Operacion = TipoOperacion.Actualizacion,
+                Criticidad = 2,
+                Mensaje = $"Se actualizó la emocion: {emocion.Nombre}, {emocion.Id}",
+            });
+
 
         }
 
@@ -59,10 +76,20 @@ namespace BLL
             if (id <= 0)
                 throw new Exception("El ID proporcionado para eliminar no es válido.");
 
-            if(_emocionDAL.GetById(id) == null)
+            var emocion = _emocionDAL.GetById(id);
+
+            if (emocion == null)
                 throw new Exception($"No se encontró ninguna emoción con ID {id}.");
 
             _emocionDAL.Delete(id);
+
+            BitacoraBLL.Instance.Registrar(new Bitacora
+            {
+                Modulo = TipoModulo.Emociones,
+                Operacion = TipoOperacion.Actualizacion,
+                Criticidad = 2,
+                Mensaje = $"Se Eliminó la emocion: {emocion.Nombre}, {emocion.Id}",
+            });
         }
     }
 }
