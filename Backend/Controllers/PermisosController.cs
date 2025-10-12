@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Claims;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -8,6 +9,7 @@ using System.Web.Http;
 using System.Web.UI.WebControls;
 using BE;
 using BLL;
+using Backend.Infrastructure;
 using Services;
 using Newtonsoft.Json.Linq;
 
@@ -63,6 +65,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpPost]
         [Route("")]
+        [CustomAuthorize]
         public IHttpActionResult Create([FromBody] JObject jsonPermiso)
         {
             if (jsonPermiso == null)
@@ -73,6 +76,17 @@ namespace Backend.Controllers
             try
             {
                 var createdPermiso = _permisoBLL.Create(PermisoSerializer.Deserializar(jsonPermiso));
+
+                var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Permisos,
+                    Operacion = BE.Types.TipoOperacion.Alta,
+                    Criticidad = 4,
+                    Usuario = user,
+                    Mensaje = $"Usuario {user.NombreUsuario} creó el permiso: {createdPermiso.Nombre}, Id: {createdPermiso.Id}",
+                });
                 return CreatedAtRoute("GetPermisoById", new { id = createdPermiso.Id }, createdPermiso);
             }
             catch (Exception ex)
@@ -87,6 +101,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpPut]
         [Route("{id:int}")]
+        [CustomAuthorize]
         public IHttpActionResult Update(int id, [FromBody] JObject jsonPermiso)
         {
             if (jsonPermiso == null)
@@ -116,6 +131,19 @@ namespace Backend.Controllers
                 }
 
                 _permisoBLL.Update(permisoTraido);
+
+                var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Permisos,
+                    Operacion = BE.Types.TipoOperacion.Actualizacion,
+                    Criticidad = 4,
+                    Usuario = user,
+                    Mensaje = $"Usuario {user.NombreUsuario} actualizó el permiso: {permisoTraido.Nombre}, Id: {permisoTraido.Id}",
+                });
+
+
                 return Ok();
             }
             catch (Exception ex)
@@ -130,6 +158,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpDelete]
         [Route("{id:int}")]
+        [CustomAuthorize]
         public IHttpActionResult Delete(int id)
         {
             if (id <= 0)
@@ -145,6 +174,17 @@ namespace Backend.Controllers
                     return Content(HttpStatusCode.NotFound, new { Message = $"Permiso con ID {id} no fue encontrado." });
                 }
                 _permisoBLL.Delete(id);
+
+                var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Permisos,
+                    Operacion = BE.Types.TipoOperacion.Baja,
+                    Criticidad = 4,
+                    Usuario = user,
+                    Mensaje = $"Usuario {user.NombreUsuario} eliminó el permiso: {permisoExistente.Nombre}, Id: {permisoExistente.Id}",
+                });
+
                 return Ok(new { Message = $"Permiso con ID {id} ha sido eliminado." });
             }
             catch (Exception ex)

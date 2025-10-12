@@ -1,13 +1,16 @@
-﻿using Backend.Models;
+﻿using Backend.Infrastructure;
+using Backend.Models;
 using BE;
 using BLL;
-using Services;
+using System.Security.Claims;
 using Newtonsoft.Json.Linq;
+using Services;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Web.Http;
-using Backend.Infrastructure;
 
 namespace Backend.Controllers
 {
@@ -76,6 +79,14 @@ namespace Backend.Controllers
 
                 var usuarioCreado = _usuarioBLL.Create(nuevoUsuario, model.Password);
 
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Usuarios,
+                    Operacion = BE.Types.TipoOperacion.Alta,
+                    Criticidad = 4,
+                    Mensaje = $"Se creó el usuario: {usuarioCreado.NombreUsuario}, Id: {usuarioCreado.Id}",
+                });
+
                 usuarioCreado.PasswordHash = null;
 
                 return CreatedAtRoute("GetUsuarioById", new { id = usuarioCreado.Id }, usuarioCreado);
@@ -92,6 +103,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpPut]
         [Route("{id:int}")]
+        [CustomAuthorize]
         public IHttpActionResult Update(int id, [FromBody] Usuario usuario)
         {
             if (!ModelState.IsValid || id != usuario.Id)
@@ -102,6 +114,18 @@ namespace Backend.Controllers
             try
             {
                 _usuarioBLL.Update(usuario);
+
+                var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Usuarios,
+                    Operacion = BE.Types.TipoOperacion.Actualizacion,
+                    Criticidad = 4,
+                    Usuario = user,
+                    Mensaje = $"Usuario {user.NombreUsuario} actualizó el usuario: {usuario.NombreUsuario}, Id: {usuario.Id}",
+                });
+
                 return Ok();
             }
             catch (Exception ex)
@@ -116,6 +140,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpPut]
         [Route("{id:int}/permisos")]
+        [CustomAuthorize]
         public IHttpActionResult AsignarPermisos(int id, [FromBody] List<JObject> permisos)
         {
             try
@@ -136,6 +161,18 @@ namespace Backend.Controllers
 
                 _permisoBLL.GuardarPermisosDeUsuario(usuario);
 
+                var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Usuarios,
+                    Operacion = BE.Types.TipoOperacion.Actualizacion,
+                    Criticidad = 4,
+                    Usuario = user,
+                    Mensaje = $"Usuario {user.NombreUsuario} actualizó los permisos del usuario: {usuario.NombreUsuario}, Id: {usuario.Id}",
+                });
+
+
                 return Ok();
             }
             catch (Exception ex)
@@ -150,11 +187,31 @@ namespace Backend.Controllers
         /// </summary>
         [HttpDelete]
         [Route("{id:int}")]
+        [CustomAuthorize]
         public IHttpActionResult Delete(int id)
         {
+            var usuarioExistente = _usuarioBLL.GetUsuarioById(id);
+
+            if (usuarioExistente == null)
+            {
+                return Content(HttpStatusCode.NotFound, new { Message = $"Usuario con ID {id} no fue encontrado." });
+            }
+
             try
             {
+
                 _usuarioBLL.Delete(id);
+
+                var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Usuarios,
+                    Operacion = BE.Types.TipoOperacion.Baja,
+                    Criticidad = 4,
+                    Usuario = user,
+                    Mensaje = $"Usuario {user.NombreUsuario} eliminó el usuario {usuarioExistente.NombreUsuario} Id: {id}",
+                });
+
                 return Ok();
             }
             catch (Exception ex)
@@ -176,5 +233,31 @@ namespace Backend.Controllers
         {
             return Ok(new { Message = "Acceso Aceptado! Tiene permisos para acceder a este recurso." });
         }
+
+
+        /// <summary>
+        /// GET: api/usuarios/mi-perfil
+        /// Obtiene la información del usuario actualmente logueado.
+        /// </summary>
+        [HttpGet]
+        [Route("mi-perfil")]
+        [CustomAuthorize]
+        public IHttpActionResult GetMiPerfil()
+        {
+
+            var principal = RequestContext.Principal as ClaimsPrincipal;
+
+            if (principal == null)
+            {
+                return Unauthorized();
+            }
+
+
+            var user = TokenService.GetUserData(principal);
+
+
+            return Ok(user);
+        }
+
     }
 }

@@ -67,5 +67,29 @@ namespace Services
                 }
             }
         }
+
+        public static Usuario GetUserData (ClaimsPrincipal principal)
+        {
+            if (principal == null) 
+                return null;
+
+            var usuarioIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
+            var nombreUsuarioClaim = principal.FindFirst(ClaimTypes.Name);
+            var emailClaim = principal.FindFirst(ClaimTypes.Email);
+            var rolesClaims = principal.FindAll(ClaimTypes.Role);
+
+            if (usuarioIdClaim == null || nombreUsuarioClaim == null || emailClaim == null) 
+                return null;
+
+            var usuario = new Usuario
+            {
+                Id = int.Parse(usuarioIdClaim.Value),
+                NombreUsuario = nombreUsuarioClaim.Value,
+                Email = emailClaim.Value,
+                Permisos = rolesClaims.Select(r => new Patente { Nombre = r.Value }).ToList<Permiso>()
+            };
+            return usuario;
+        }
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Claims;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -6,7 +7,9 @@ using System.Net.Http;
 using System.Web.Http;
 using BLL;
 using BE;
+using Services;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Backend.Infrastructure;
 
 namespace Backend.Controllers
 {
@@ -24,6 +27,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpPost]
         [Route("")]
+        [CustomAuthorize]
         public IHttpActionResult Create([FromBody] Libro libro)
         {
             if (!ModelState.IsValid)
@@ -34,6 +38,17 @@ namespace Backend.Controllers
             try
             {
                 var libroCreado = _productoBLL.Create(libro);
+
+                var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Productos,
+                    Operacion = BE.Types.TipoOperacion.Alta,
+                    Criticidad = 2,
+                    Usuario = user,
+                    Mensaje = $"Usuario {user.NombreUsuario} creó el libro: {libroCreado.Nombre}, Id: {libroCreado.Id}",
+                });
 
                 return CreatedAtRoute("GetProductoById", new { id = libroCreado.Id }, libroCreado);
             }
@@ -49,6 +64,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpPut]
         [Route("{id:int}")]
+        [CustomAuthorize]
         public IHttpActionResult Update(int id, [FromBody] Libro libro)
         {
             if (!ModelState.IsValid || id != libro.Id)
@@ -63,6 +79,19 @@ namespace Backend.Controllers
             try
             {
                 _productoBLL.Update(libro);
+
+                var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Productos,
+                    Operacion = BE.Types.TipoOperacion.Actualizacion,
+                    Criticidad = 2,
+                    Usuario = user,
+                    Mensaje = $"Usuario {user.NombreUsuario} actualizó el libro: {libro.Nombre}, Id: {libro.Id}",
+                });
+
+
                 return Ok();
             }
             catch (Exception ex)

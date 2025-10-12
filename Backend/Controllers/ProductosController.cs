@@ -1,5 +1,9 @@
 ﻿using BLL;
+using BE;
+using Services;
+using Backend.Infrastructure;
 using System;
+using System.Security.Claims;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -52,6 +56,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpDelete]
         [Route("{id:int}")]
+        [CustomAuthorize]
         public IHttpActionResult Delete(int id)
         {
             var productoExistente = _productoBLL.GetById(id);
@@ -62,6 +67,18 @@ namespace Backend.Controllers
                     return Content(HttpStatusCode.NotFound, new { Message = $"Producto con ID {id} no fue encontrado." });
                 }
                 _productoBLL.Delete(id);
+
+                var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Productos,
+                    Operacion = BE.Types.TipoOperacion.Baja,
+                    Criticidad = 3,
+                    Usuario = user,
+                    Mensaje = $"Usuario {user.NombreUsuario} eliminó el producto: {productoExistente.Nombre}, Id: {productoExistente.Id}",
+                });
+
                 return Ok(new { Message = $"Producto con ID {id} ha sido eliminado." });
             }
             catch (Exception ex)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Claims;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -6,6 +7,8 @@ using System.Net.Http;
 using System.Web.Http;
 using BE;
 using BLL;
+using Backend.Infrastructure;
+using Services;
 
 namespace Backend.Controllers
 {
@@ -22,6 +25,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpPost]
         [Route("")]
+        [CustomAuthorize]
         public IHttpActionResult Create([FromBody] Pelicula pelicula)
         {
             if (!ModelState.IsValid)
@@ -31,6 +35,19 @@ namespace Backend.Controllers
             try
             {
                 var peliculaCreada = _productoBLL.Create(pelicula);
+
+                var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Productos,
+                    Operacion = BE.Types.TipoOperacion.Alta,
+                    Criticidad = 2,
+                    Usuario = user,
+                    Mensaje = $"Usuario {user.NombreUsuario} creó la película: {peliculaCreada.Nombre}, Id: {peliculaCreada.Id}",
+                });
+
                 return CreatedAtRoute("GetProductoById", new { id = peliculaCreada.Id }, peliculaCreada);
             }
             catch (Exception ex)
@@ -44,6 +61,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpPut]
         [Route("{id:int}")]
+        [CustomAuthorize]
         public IHttpActionResult Update(int id, [FromBody] Pelicula pelicula)
         {
             if (!ModelState.IsValid || id != pelicula.Id)
@@ -56,6 +74,19 @@ namespace Backend.Controllers
             try
             {
                 _productoBLL.Update(pelicula);
+
+                var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Productos,
+                    Operacion = BE.Types.TipoOperacion.Actualizacion,
+                    Criticidad = 2,
+                    Usuario = user,
+                    Mensaje = $"Usuario {user.NombreUsuario} actualizó la película: {pelicula.Nombre}, Id: {pelicula.Id}",
+                });
+
+
                 return Ok();
             }
             catch (Exception ex)

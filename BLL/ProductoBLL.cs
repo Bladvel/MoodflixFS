@@ -35,14 +35,6 @@ namespace BLL
             int newId = _productoDAL.Create(producto);
             producto.Id = newId;
 
-            BitacoraBLL.Instance.Registrar(new Bitacora
-            {
-                Modulo = TipoModulo.Productos,
-                Operacion = TipoOperacion.Alta,
-                Criticidad = 2,
-                Mensaje = $"Se creo un Producto nuevo: {producto.Nombre}, {producto.Id}"
-
-            });
 
             return producto;
             
@@ -58,14 +50,6 @@ namespace BLL
 
             _productoDAL.Update(producto);
 
-            BitacoraBLL.Instance.Registrar(new Bitacora
-            {
-                Modulo = TipoModulo.Productos,
-                Operacion = TipoOperacion.Actualizacion,
-                Criticidad = 3,
-                Mensaje = $"Se creo un Producto nuevo: {producto.Nombre}, {producto.Id}"
-
-            });
 
         }
 
@@ -82,14 +66,6 @@ namespace BLL
 
             _productoDAL.Delete(id);
 
-            BitacoraBLL.Instance.Registrar(new Bitacora
-            {
-                Modulo = TipoModulo.Productos,
-                Operacion = TipoOperacion.Baja,
-                Criticidad = 4,
-                Mensaje = $"Se elimino el Producto nuevo: {producto.Nombre}, {producto.Id}"
-
-            });
         }
     }
 }

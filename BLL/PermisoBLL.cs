@@ -44,16 +44,6 @@ namespace BLL
             int newId = _permisoDAL.Create(permiso);
             permiso.Id = newId;
 
-            BitacoraBLL.Instance.Registrar(new Bitacora
-            {
-                Modulo = TipoModulo.Permisos,
-                Operacion = TipoOperacion.Alta,
-                Criticidad = 2,
-                Mensaje = $"Se creó un nuevo permiso: '{permiso.Nombre}' (ID: {permiso.Id})."
-
-            });
-
-
             return permiso;
        
         }
@@ -121,16 +111,7 @@ namespace BLL
             }
             
             _permisoDAL.Update(permiso);
-
-            BitacoraBLL.Instance.Registrar(new Bitacora
-            {
-                Modulo = TipoModulo.Permisos,
-                Operacion = TipoOperacion.Actualizacion,
-                Criticidad = 2,
-                Mensaje = $"Se editó el permiso: '{permiso.Nombre}' (ID: {permiso.Id})."
-            });
-            
-            
+ 
         }
 
         public void GuardarPermisosDeUsuario(Usuario usuario)
@@ -162,13 +143,6 @@ namespace BLL
 
             _permisoDAL.Delete(id);
 
-            BitacoraBLL.Instance.Registrar(new Bitacora
-            {
-                Modulo = TipoModulo.Permisos,
-                Operacion = TipoOperacion.Baja,
-                Criticidad = 4,
-                Mensaje = $"Se eliminó el permiso: '{permiso.Nombre}' (ID: {permiso.Id})."
-            });
         }
 
 

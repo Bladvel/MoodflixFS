@@ -42,14 +42,6 @@ namespace BLL
             usuario.PasswordHash = CryptoManager.HashPassword(password);
             usuario.Id = _usuarioDAL.Create(usuario);
 
-            BitacoraBLL.Instance.Registrar(new Bitacora
-            {
-                Modulo = TipoModulo.Usuarios,
-                Operacion = TipoOperacion.Alta,
-                Criticidad = 2,
-                Mensaje = $"Se creo el Usuario: {usuario.NombreUsuario}, {usuario.Id}"
-            });
-
             return usuario;
         }
 
@@ -62,13 +54,6 @@ namespace BLL
 
             _usuarioDAL.Update(usuario);
 
-            BitacoraBLL.Instance.Registrar(new Bitacora
-            {
-                Modulo = TipoModulo.Usuarios,
-                Operacion = TipoOperacion.Actualizacion,
-                Criticidad = 3,
-                Mensaje = $"Se Actualizo el Usuario: {usuario.NombreUsuario}, {usuario.Id}"
-            });
         }
 
         public void Delete(int id)
@@ -83,13 +68,6 @@ namespace BLL
 
             _usuarioDAL.Delete(id);
 
-            BitacoraBLL.Instance.Registrar(new Bitacora
-            {
-                Modulo = TipoModulo.Usuarios,
-                Operacion = TipoOperacion.Baja,
-                Criticidad = 3,
-                Mensaje = $"Se elimino el Usuario: {usuario.NombreUsuario}, {usuario.Id}"
-            });
         }
 
 

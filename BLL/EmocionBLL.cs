@@ -38,14 +38,6 @@ namespace BLL
             int newId = _emocionDAL.Create(emocion);
             emocion.Id = newId;
 
-            BitacoraBLL.Instance.Registrar(new Bitacora
-            {
-                Modulo = TipoModulo.Emociones,
-                Operacion = TipoOperacion.Alta,
-                Criticidad = 2,
-                Mensaje = $"Se creo la emocion: {emocion.Nombre}, {emocion.Id}",
-            });
-
             return emocion;
 
         }
@@ -59,13 +51,6 @@ namespace BLL
 
             _emocionDAL.Update(emocion);
 
-            BitacoraBLL.Instance.Registrar(new Bitacora
-            {
-                Modulo = TipoModulo.Emociones,
-                Operacion = TipoOperacion.Actualizacion,
-                Criticidad = 2,
-                Mensaje = $"Se actualizó la emocion: {emocion.Nombre}, {emocion.Id}",
-            });
 
 
         }
@@ -83,13 +68,6 @@ namespace BLL
 
             _emocionDAL.Delete(id);
 
-            BitacoraBLL.Instance.Registrar(new Bitacora
-            {
-                Modulo = TipoModulo.Emociones,
-                Operacion = TipoOperacion.Actualizacion,
-                Criticidad = 2,
-                Mensaje = $"Se Eliminó la emocion: {emocion.Nombre}, {emocion.Id}",
-            });
         }
     }
 }

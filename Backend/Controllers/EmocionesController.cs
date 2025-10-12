@@ -1,12 +1,15 @@
 ﻿using BE;
 using BLL;
 using System;
+using System.Security.Claims;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.UI.WebControls;
+using Backend.Infrastructure;
+using Services;
 
 namespace Backend.Controllers
 {
@@ -54,6 +57,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpPost]
         [Route("")]
+        [CustomAuthorize]
         public IHttpActionResult Create([FromBody] Emocion emocion)
         {
 
@@ -66,11 +70,27 @@ namespace Backend.Controllers
             {
                 var emocionCreada = _emocionBLL.Create(emocion);
 
+                var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Emociones,
+                    Operacion = BE.Types.TipoOperacion.Alta,
+                    Criticidad = 2,
+                    Usuario = user,
+                    Mensaje = $"Usuario {user.NombreUsuario} creó la emoción: {emocionCreada.Nombre}, Id: {emocionCreada.Id}",
+                });
+
+
                 return CreatedAtRoute("GetEmocionById", new { id = emocionCreada.Id }, emocionCreada);
+
+
+
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+
             }
         }
 
@@ -80,6 +100,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpPut]
         [Route("{id:int}")]
+        [CustomAuthorize]
         public IHttpActionResult Update(int id, [FromBody] Emocion emocion)
         {
             if (!ModelState.IsValid || id != emocion.Id)
@@ -97,6 +118,19 @@ namespace Backend.Controllers
 
                 _emocionBLL.Update(emocion);
 
+                var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Emociones,
+                    Operacion = BE.Types.TipoOperacion.Actualizacion,
+                    Criticidad = 2,
+                    Usuario = user,
+                    Mensaje = $"Usuario {user.NombreUsuario} actualizó la emoción: {emocion.Nombre}, Id: {emocion.Id}",
+                });
+
+
 
                 return Ok();
             }
@@ -112,6 +146,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpDelete]
         [Route("{id:int}")]
+        [CustomAuthorize]
         public IHttpActionResult Delete(int id)
         {
             try
@@ -123,6 +158,18 @@ namespace Backend.Controllers
                 }
 
                 _emocionBLL.Delete(id);
+
+                var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Emociones,
+                    Operacion = BE.Types.TipoOperacion.Baja,
+                    Criticidad = 3,
+                    Usuario = user,
+                    Mensaje = $"Usuario {user.NombreUsuario} eliminó la emoción: {emocionExistente.Nombre}, Id: {emocionExistente.Id}",
+                });
+
+
                 return Ok(new { Message = $"Emocion con ID {id} ha sido eliminado." });
             }
             catch (Exception ex)
