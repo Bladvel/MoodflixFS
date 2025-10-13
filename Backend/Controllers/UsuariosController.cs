@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Security.Claims;
 using System.Web.Http;
 
 namespace Backend.Controllers
@@ -30,6 +29,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpGet]
         [Route("")]
+        [CustomAuthorize(Permissions ="GESTIONAR_USUARIOS")]
         public IHttpActionResult GetAll()
         {
             var usuarios = _usuarioBLL.GetAll();
@@ -103,7 +103,7 @@ namespace Backend.Controllers
         /// </summary>
         [HttpPut]
         [Route("{id:int}")]
-        [CustomAuthorize]
+        [CustomAuthorize(Permissions ="GESTIONAR_USUARIOS")]
         public IHttpActionResult Update(int id, [FromBody] Usuario usuario)
         {
             if (!ModelState.IsValid || id != usuario.Id)

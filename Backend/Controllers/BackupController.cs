@@ -15,7 +15,7 @@ using System.Web.Http;
 namespace Backend.Controllers
 {
     [RoutePrefix("api/backup")]
-    [CustomAuthorize]//Debo agregar el permiso especifico para backup
+    [CustomAuthorize(Permissions ="GESTIONAR_BACKUP")]
     public class BackupController : ApiController
     {
         private readonly BackupBLL _backupBLL = new BackupBLL();
@@ -113,6 +113,17 @@ namespace Backend.Controllers
                 string rutaArchivoSubido = provider.FileData[0].LocalFileName;
 
                 _backupBLL.RestaurarBackup(rutaArchivoSubido);
+
+                var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                {
+                    Modulo = BE.Types.TipoModulo.Backup,
+                    Operacion = BE.Types.TipoOperacion.RestauracionBackup,
+                    Criticidad = 5,
+                    Usuario = user,
+                    Mensaje = $"Usuario {user.NombreUsuario} restauró un backup.",
+                });
 
                 File.Delete(rutaArchivoSubido);
 
