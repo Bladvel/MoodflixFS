@@ -13,6 +13,8 @@ namespace BE.Types
         Desconocida,
         Alta,
         Actualizacion,
-        Baja
+        Baja,
+        GeneracionBackup,
+        RestauracionBackup,
     }
 }

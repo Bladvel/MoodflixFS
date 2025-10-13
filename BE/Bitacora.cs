@@ -26,8 +26,8 @@ namespace BE
         // 1 - Login
         // 2 - Alta, Actualizacion
         // 3 - Baja
-        // 4 - Todo referente a permisos y usuarios
-        // 5 - Error Grave
+        // 4 - Todo referente a permisos y usuarios, generacion de backup
+        // 5 - Error Grave, restauracion de backup
 
     }
 }
