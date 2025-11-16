@@ -46,6 +46,7 @@
     <Compile Include="BitacoraDAL.cs" />
     <Compile Include="EmocionDAL.cs" />
     <Compile Include="Mapper.cs" />
+    <Compile Include="PedidoDAL.cs" />
     <Compile Include="PermisoDAL.cs" />
     <Compile Include="ProductoDAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

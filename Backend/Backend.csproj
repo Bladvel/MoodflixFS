@@ -188,6 +188,7 @@
     <Content Include="Areas\HelpPage\HelpPage.css" />
     <Content Include="Global.asax" />
     <Content Include="Web.config" />
+    <Content Include="XmlService.asmx" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
@@ -222,6 +223,7 @@
     <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\BackupController.cs" />
     <Compile Include="Controllers\BitacoraController.cs" />
+    <Compile Include="Controllers\PedidosController.cs" />
     <Compile Include="Controllers\UsuariosController.cs" />
     <Compile Include="Controllers\EmocionesController.cs" />
     <Compile Include="Controllers\LibrosController.cs" />
@@ -237,6 +239,10 @@
     <Compile Include="Models\RegistroModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
+    <Compile Include="XmlService.asmx.cs">
+      <DependentUpon>XmlService.asmx</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Areas\HelpPage\Views\_ViewStart.cshtml" />

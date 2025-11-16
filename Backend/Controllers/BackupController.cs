@@ -31,9 +31,10 @@ namespace Backend.Controllers
 
             try
             {
-                string tempPath = Path.GetTempPath();
+                // Usar la carpeta de backups de SQL Server donde ya tiene permisos
+                string backupDirectory = @"C:\Backups";
                 string nombreArchivo = $"Moodflix-Backup-{DateTime.Now:yyyy-MM-dd-HHmmss}.bak";
-                string rutaCompleta = Path.Combine(tempPath, nombreArchivo);
+                string rutaCompleta = Path.Combine(backupDirectory, nombreArchivo);
 
                 _backupBLL.GenerarBackup(rutaCompleta);
 

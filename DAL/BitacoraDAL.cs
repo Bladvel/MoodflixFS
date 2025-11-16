@@ -54,23 +54,102 @@ namespace DAL
                 da.Fill(dt);
             }
 
+            // Obtener IDs únicos de usuarios
             var userIds = dt.AsEnumerable()
-                            .Where(row => row["UsuarioId"] != DBNull.Value)
-                            .Select(row => Convert.ToInt32(row["UsuarioId"]))
-                            .Distinct()
-                            .ToList();
+                .Where(row => row["UsuarioId"] != DBNull.Value)
+                .Select(row => Convert.ToInt32(row["UsuarioId"]))
+                .Distinct()
+                .ToList();
 
-            var usuarios = _usuarioDAL.GetByIds(userIds)
-                                      .ToDictionary(u => u.Id);
+            // Cargar usuarios de forma simple
+            var usuarios = new Dictionary<int, Usuario>();
+            if (userIds.Count > 0)
+            {
+                using (var con = new SqlConnection(_connectionString))
+                {
+                    con.Open();
+                    foreach (var id in userIds)
+                    {
+                        var cmd = new SqlCommand("SELECT Id, NombreUsuario, Email FROM Usuario WHERE Id = @Id", con);
+                        cmd.Parameters.AddWithValue("@Id", id);
 
-            // 3. Transformamos las filas, pasando el diccionario de usuarios.
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                usuarios[id] = new Usuario
+                                {
+                                    Id = reader.GetInt32(0),
+                                    NombreUsuario = reader.GetString(1),
+                                    Email = reader.GetString(2)
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Transformar las filas
             var eventos = new List<Bitacora>();
             foreach (DataRow row in dt.Rows)
             {
-                eventos.Add(Transform(row, usuarios));
+                try
+                {
+                    var bitacora = new Bitacora
+                    {
+                        Id = Convert.ToInt32(row["Id"]),
+                        Fecha = Convert.ToDateTime(row["Fecha"]),
+                        Criticidad = Convert.ToInt32(row["Criticidad"]),
+                        Mensaje = row["Mensaje"].ToString()
+                    };
+
+                    // Parsear Modulo con manejo de errores
+                    string moduloStr = row["Modulo"].ToString();
+                    if (Enum.TryParse<TipoModulo>(moduloStr, true, out TipoModulo modulo))
+                    {
+                        bitacora.Modulo = modulo;
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Valor de Modulo no reconocido: '{moduloStr}'. Usando 'Desconocido'.");
+                        bitacora.Modulo = TipoModulo.Desconocido;
+                    }
+
+                    // Parsear Operacion con manejo de errores
+                    string operacionStr = row["Operacion"].ToString();
+                    if (Enum.TryParse<TipoOperacion>(operacionStr, true, out TipoOperacion operacion))
+                    {
+                        bitacora.Operacion = operacion;
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Valor de Operacion no reconocido: '{operacionStr}'. Usando 'Desconocida'.");
+                        bitacora.Operacion = TipoOperacion.Desconocida;
+                    }
+
+                    // Asignar usuario si existe
+                    if (row["UsuarioId"] != DBNull.Value)
+                    {
+                        int userId = Convert.ToInt32(row["UsuarioId"]);
+                        if (usuarios.ContainsKey(userId))
+                        {
+                            bitacora.Usuario = usuarios[userId];
+                        }
+                    }
+
+                    eventos.Add(bitacora);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error procesando fila de bitácora ID {row["Id"]}: {ex.Message}");
+                    // Continuar con la siguiente fila
+                }
             }
+
             return eventos;
         }
+
+
 
 
         public override Bitacora GetById(int id)
@@ -155,7 +234,15 @@ namespace DAL
                 int userId = Convert.ToInt32(row["UsuarioId"]);
                 if (usuarios.ContainsKey(userId))
                 {
-                    bitacora.Usuario = usuarios[userId];
+                    // Crear un Usuario simple sin colecciones para evitar referencias circulares
+                    bitacora.Usuario = new Usuario
+                    {
+                        Id = usuarios[userId].Id,
+                        NombreUsuario = usuarios[userId].NombreUsuario,
+                        Email = usuarios[userId].Email
+                        // NO incluir: Permisos, Pedidos, Bitacora, Direcciones, etc
+                        //bitacora.Usuario = usuarios[userId];
+                    };
                 }
             }
 

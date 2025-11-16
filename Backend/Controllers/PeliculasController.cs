@@ -19,6 +19,8 @@ namespace Backend.Controllers
     public class PeliculasController : ApiController
     {
         private readonly ProductoBLL _productoBLL = new ProductoBLL();
+        private readonly EmocionBLL _emocionBLL = new EmocionBLL();
+
         /// <summary>
         /// POST: api/peliculas
         /// Crea un nuevo producto de tipo Pelicula.
@@ -26,7 +28,7 @@ namespace Backend.Controllers
         [HttpPost]
         [Route("")]
         [CustomAuthorize]
-        public IHttpActionResult Create([FromBody] Pelicula pelicula)
+        public IHttpActionResult Create([FromBody] PeliculaCreateDTO peliculaDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -34,6 +36,33 @@ namespace Backend.Controllers
             }
             try
             {
+                // Convertir DTO a entidad Pelicula
+                var pelicula = new Pelicula
+                {
+                    Nombre = peliculaDTO.Nombre,
+                    Descripcion = peliculaDTO.Descripcion,
+                    Precio = peliculaDTO.Precio,
+                    Stock = peliculaDTO.Stock,
+                    UrlImagen = peliculaDTO.UrlImagen,
+                    Director = peliculaDTO.Director,
+                    Productora = peliculaDTO.Productora,
+                    AnioLanzamiento = peliculaDTO.AnioLanzamiento,
+                    Emociones = new List<Emocion>()
+                };
+
+                // Convertir IDs de emociones en objetos Emocion
+                if (peliculaDTO.EmocionesIds != null && peliculaDTO.EmocionesIds.Any())
+                {
+                    foreach (var emocionId in peliculaDTO.EmocionesIds)
+                    {
+                        var emocion = _emocionBLL.GetById(emocionId);
+                        if (emocion != null)
+                        {
+                            pelicula.Emociones.Add(emocion);
+                        }
+                    }
+                }
+
                 var peliculaCreada = _productoBLL.Create(pelicula);
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
@@ -62,9 +91,9 @@ namespace Backend.Controllers
         [HttpPut]
         [Route("{id:int}")]
         [CustomAuthorize]
-        public IHttpActionResult Update(int id, [FromBody] Pelicula pelicula)
+        public IHttpActionResult Update(int id, [FromBody] PeliculaUpdateDTO peliculaDTO)
         {
-            if (!ModelState.IsValid || id != pelicula.Id)
+            if (!ModelState.IsValid || id != peliculaDTO.Id)
             {
                 return BadRequest();
             }
@@ -73,6 +102,35 @@ namespace Backend.Controllers
             if (!(productoExistente is Pelicula)) return BadRequest("El producto con este ID no es una película.");
             try
             {
+
+                // Convertir DTO a entidad Pelicula
+                var pelicula = new Pelicula
+                {
+                    Id = peliculaDTO.Id,
+                    Nombre = peliculaDTO.Nombre,
+                    Descripcion = peliculaDTO.Descripcion,
+                    Precio = peliculaDTO.Precio,
+                    Stock = peliculaDTO.Stock,
+                    UrlImagen = peliculaDTO.UrlImagen,
+                    Director = peliculaDTO.Director,
+                    Productora = peliculaDTO.Productora,
+                    AnioLanzamiento = peliculaDTO.AnioLanzamiento,
+                    Emociones = new List<Emocion>()
+                };
+
+                // Convertir IDs de emociones en objetos Emocion
+                if (peliculaDTO.EmocionesIds != null && peliculaDTO.EmocionesIds.Any())
+                {
+                    foreach (var emocionId in peliculaDTO.EmocionesIds)
+                    {
+                        var emocion = _emocionBLL.GetById(emocionId);
+                        if (emocion != null)
+                        {
+                            pelicula.Emociones.Add(emocion);
+                        }
+                    }
+                }
+
                 _productoBLL.Update(pelicula);
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);

@@ -44,6 +44,7 @@
     <Compile Include="BackupBLL.cs" />
     <Compile Include="BitacoraBLL.cs" />
     <Compile Include="EmocionBLL.cs" />
+    <Compile Include="PedidoBLL.cs" />
     <Compile Include="PermisoBLL.cs" />
     <Compile Include="ProductoBLL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

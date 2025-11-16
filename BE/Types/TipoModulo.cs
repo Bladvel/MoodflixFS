@@ -18,6 +18,7 @@ namespace BE.Types
         ABM,
         Desconocido,
         Permisos,
-        Usuarios
+        Usuarios,
+        Pedidos
     }
 }

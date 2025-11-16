@@ -56,6 +56,33 @@ namespace DAL
             return producto;
         }
 
+        // NUEVO MÉTODO: Cargar emociones de un producto
+        private void CargarEmociones(Producto producto)
+        {
+            using (var con = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand("sp_ObtenerEmocionesDeProducto", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@ProductoId", producto.Id);
+
+                var da = new SqlDataAdapter(cmd);
+                var dt = new DataTable();
+                da.Fill(dt);
+
+                producto.Emociones = new List<Emocion>();
+                foreach (DataRow row in dt.Rows)
+                {
+                    var emocion = new Emocion
+                    {
+                        Id = Convert.ToInt32(row["Id"]),
+                        Nombre = row["Nombre"].ToString(),
+                        UrlImagen = row["UrlImagen"] != DBNull.Value ? row["UrlImagen"].ToString() : null
+                    };
+                    producto.Emociones.Add(emocion);
+                }
+            }
+        }
+
         public override List<Producto> GetAll()
         {
             var productos = new List<Producto>();
@@ -68,7 +95,10 @@ namespace DAL
 
                 foreach (DataRow row in dt.Rows)
                 {
-                    productos.Add(Transform(row));
+                    var producto = Transform(row);
+                    // CARGAR EMOCIONES PARA CADA PRODUCTO
+                    CargarEmociones(producto);
+                    productos.Add(producto);
                 }
             }
             return productos;
@@ -86,7 +116,10 @@ namespace DAL
 
                 if (dt.Rows.Count == 1)
                 {
-                    return Transform(dt.Rows[0]);
+                    var producto = Transform(dt.Rows[0]);
+                    // CARGAR EMOCIONES DEL PRODUCTO
+                    CargarEmociones(producto);
+                    return producto;
                 }
             }
             return null;
@@ -117,11 +150,17 @@ namespace DAL
                 cmd.Parameters.AddWithValue("@Descripcion", libro.Descripcion);
                 cmd.Parameters.AddWithValue("@Precio", libro.Precio);
                 cmd.Parameters.AddWithValue("@Stock", libro.Stock);
-                cmd.Parameters.AddWithValue("@UrlImagen", libro.UrlImagen);
+                cmd.Parameters.AddWithValue("@UrlImagen", libro.UrlImagen ?? (object)DBNull.Value);
 
                 cmd.Parameters.AddWithValue("@Autor", libro.Autor);
                 cmd.Parameters.AddWithValue("@Editorial", libro.Editorial);
                 cmd.Parameters.AddWithValue("@ISBN", libro.ISBN);
+
+                // NUEVO: Enviar IDs de emociones como string separado por comas
+                string emocionesIds = libro.Emociones != null && libro.Emociones.Any()
+                    ? string.Join(",", libro.Emociones.Select(e => e.Id))
+                    : null;
+                cmd.Parameters.AddWithValue("@EmocionesIds", emocionesIds ?? (object)DBNull.Value);
 
                 con.Open();
                 return Convert.ToInt32(cmd.ExecuteScalar());
@@ -139,11 +178,17 @@ namespace DAL
                 cmd.Parameters.AddWithValue("@Descripcion", pelicula.Descripcion);
                 cmd.Parameters.AddWithValue("@Precio", pelicula.Precio);
                 cmd.Parameters.AddWithValue("@Stock", pelicula.Stock);
-                cmd.Parameters.AddWithValue("@UrlImagen", pelicula.UrlImagen);
+                cmd.Parameters.AddWithValue("@UrlImagen", pelicula.UrlImagen ?? (object)DBNull.Value);
 
                 cmd.Parameters.AddWithValue("@Director", pelicula.Director);
                 cmd.Parameters.AddWithValue("@Productora", pelicula.Productora);
                 cmd.Parameters.AddWithValue("@AnioLanzamiento", pelicula.AnioLanzamiento);
+
+                // NUEVO: Enviar IDs de emociones como string separado por comas
+                string emocionesIds = pelicula.Emociones != null && pelicula.Emociones.Any()
+                    ? string.Join(",", pelicula.Emociones.Select(e => e.Id))
+                    : null;
+                cmd.Parameters.AddWithValue("@EmocionesIds", emocionesIds ?? (object)DBNull.Value);
 
                 con.Open();
                 return Convert.ToInt32(cmd.ExecuteScalar());
@@ -179,10 +224,16 @@ namespace DAL
                 cmd.Parameters.AddWithValue("@Descripcion", libro.Descripcion);
                 cmd.Parameters.AddWithValue("@Precio", libro.Precio);
                 cmd.Parameters.AddWithValue("@Stock", libro.Stock);
-                cmd.Parameters.AddWithValue("@UrlImagen", libro.UrlImagen);
+                cmd.Parameters.AddWithValue("@UrlImagen", libro.UrlImagen ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Autor", libro.Autor);
                 cmd.Parameters.AddWithValue("@Editorial", libro.Editorial);
                 cmd.Parameters.AddWithValue("@ISBN", libro.ISBN);
+
+                // NUEVO: Enviar IDs de emociones como string separado por comas
+                string emocionesIds = libro.Emociones != null && libro.Emociones.Any()
+                    ? string.Join(",", libro.Emociones.Select(e => e.Id))
+                    : null;
+                cmd.Parameters.AddWithValue("@EmocionesIds", emocionesIds ?? (object)DBNull.Value);
 
                 con.Open();
                 cmd.ExecuteNonQuery();
@@ -201,10 +252,16 @@ namespace DAL
                 cmd.Parameters.AddWithValue("@Descripcion", pelicula.Descripcion);
                 cmd.Parameters.AddWithValue("@Precio", pelicula.Precio);
                 cmd.Parameters.AddWithValue("@Stock", pelicula.Stock);
-                cmd.Parameters.AddWithValue("@UrlImagen", pelicula.UrlImagen);
+                cmd.Parameters.AddWithValue("@UrlImagen", pelicula.UrlImagen ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Director", pelicula.Director);
                 cmd.Parameters.AddWithValue("@Productora", pelicula.Productora);
                 cmd.Parameters.AddWithValue("@AnioLanzamiento", pelicula.AnioLanzamiento);
+
+                // NUEVO: Enviar IDs de emociones como string separado por comas
+                string emocionesIds = pelicula.Emociones != null && pelicula.Emociones.Any()
+                    ? string.Join(",", pelicula.Emociones.Select(e => e.Id))
+                    : null;
+                cmd.Parameters.AddWithValue("@EmocionesIds", emocionesIds ?? (object)DBNull.Value);
 
                 con.Open();
                 cmd.ExecuteNonQuery();

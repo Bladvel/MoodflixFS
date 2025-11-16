@@ -106,13 +106,31 @@ namespace Backend.Controllers
         [CustomAuthorize(Permissions ="GESTIONAR_USUARIOS")]
         public IHttpActionResult Update(int id, [FromBody] Usuario usuario)
         {
-            if (!ModelState.IsValid || id != usuario.Id)
+            /*if (!ModelState.IsValid || id != usuario.Id)
             {
-                return BadRequest();
+                //return BadRequest();
+                return Content(HttpStatusCode.BadRequest, new { Message = "Datos inválidos o ID no coincide" });
+            }*/
+
+            // Validar que el ID coincida
+            if (id != usuario.Id)
+            {
+                return Content(HttpStatusCode.BadRequest, new { Message = "El ID en la URL no coincide con el ID del usuario" });
             }
 
             try
             {
+                // Obtener el usuario existente
+                var usuarioExistente = _usuarioBLL.GetUsuarioById(id);
+                if (usuarioExistente == null)
+                {
+                    return NotFound();
+                }
+
+                // Actualizar solo los campos permitidos
+                usuarioExistente.NombreUsuario = usuario.NombreUsuario;
+                usuarioExistente.Email = usuario.Email;
+                usuarioExistente.Bloqueado = usuario.Bloqueado;
                 _usuarioBLL.Update(usuario);
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
@@ -126,11 +144,12 @@ namespace Backend.Controllers
                     Mensaje = $"Usuario {user.NombreUsuario} actualizó el usuario: {usuario.NombreUsuario}, Id: {usuario.Id}",
                 });
 
-                return Ok();
+                // CAMBIO: Devolver un JSON válido en lugar de solo Ok()
+                return Ok(new { Message = "Usuario actualizado correctamente", Success = true });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return Content(HttpStatusCode.BadRequest, new { Message = ex.Message, Success = false });
             }
         }
 
@@ -150,7 +169,8 @@ namespace Backend.Controllers
                 {
                     return NotFound();
                 }
-
+                // IMPORTANTE: Limpiar permisos existentes primero
+                usuario.Permisos.Clear();
                 if (permisos != null)
                 {
                     foreach (JObject p in permisos)
@@ -173,7 +193,8 @@ namespace Backend.Controllers
                 });
 
 
-                return Ok();
+                // IMPORTANTE: Devolver un JSON válido
+                return Ok(new { Message = "Permisos actualizados correctamente" });
             }
             catch (Exception ex)
             {

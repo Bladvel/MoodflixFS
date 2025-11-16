@@ -20,6 +20,7 @@ namespace Backend.Controllers
     public class LibrosController : ApiController
     {
         private readonly ProductoBLL _productoBLL = new ProductoBLL();
+        private readonly EmocionBLL _emocionBLL = new EmocionBLL();
 
         /// <summary>
         /// POST: api/libros
@@ -28,7 +29,7 @@ namespace Backend.Controllers
         [HttpPost]
         [Route("")]
         [CustomAuthorize]
-        public IHttpActionResult Create([FromBody] Libro libro)
+        public IHttpActionResult Create([FromBody] LibroCreateDTO libroDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -37,6 +38,32 @@ namespace Backend.Controllers
 
             try
             {
+                // Convertir DTO a entidad Libro
+                var libro = new Libro
+                {
+                    Nombre = libroDTO.Nombre,
+                    Descripcion = libroDTO.Descripcion,
+                    Precio = libroDTO.Precio,
+                    Stock = libroDTO.Stock,
+                    UrlImagen = libroDTO.UrlImagen,
+                    Autor = libroDTO.Autor,
+                    Editorial = libroDTO.Editorial,
+                    ISBN = libroDTO.ISBN,
+                    Emociones = new List<Emocion>()
+                };
+
+                // Convertir IDs de emociones en objetos Emocion
+                if (libroDTO.EmocionesIds != null && libroDTO.EmocionesIds.Any())
+                {
+                    foreach (var emocionId in libroDTO.EmocionesIds)
+                    {
+                        var emocion = _emocionBLL.GetById(emocionId);
+                        if (emocion != null)
+                        {
+                            libro.Emociones.Add(emocion);
+                        }
+                    }
+                }
                 var libroCreado = _productoBLL.Create(libro);
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
@@ -65,9 +92,9 @@ namespace Backend.Controllers
         [HttpPut]
         [Route("{id:int}")]
         [CustomAuthorize]
-        public IHttpActionResult Update(int id, [FromBody] Libro libro)
+        public IHttpActionResult Update(int id, [FromBody] LibroUpdateDTO libroDTO)
         {
-            if (!ModelState.IsValid || id != libro.Id)
+            if (!ModelState.IsValid || id != libroDTO.Id)
             {
                 return BadRequest();
             }
@@ -78,6 +105,35 @@ namespace Backend.Controllers
 
             try
             {
+
+                // Convertir DTO a entidad Libro
+                var libro = new Libro
+                {
+                    Id = libroDTO.Id,
+                    Nombre = libroDTO.Nombre,
+                    Descripcion = libroDTO.Descripcion,
+                    Precio = libroDTO.Precio,
+                    Stock = libroDTO.Stock,
+                    UrlImagen = libroDTO.UrlImagen,
+                    Autor = libroDTO.Autor,
+                    Editorial = libroDTO.Editorial,
+                    ISBN = libroDTO.ISBN,
+                    Emociones = new List<Emocion>()
+                };
+
+                // Convertir IDs de emociones en objetos Emocion
+                if (libroDTO.EmocionesIds != null && libroDTO.EmocionesIds.Any())
+                {
+                    foreach (var emocionId in libroDTO.EmocionesIds)
+                    {
+                        var emocion = _emocionBLL.GetById(emocionId);
+                        if (emocion != null)
+                        {
+                            libro.Emociones.Add(emocion);
+                        }
+                    }
+                }
+
                 _productoBLL.Update(libro);
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);

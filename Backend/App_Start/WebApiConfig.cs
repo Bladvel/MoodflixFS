@@ -12,6 +12,9 @@ namespace Backend
     {
         public static void Register(HttpConfiguration config)
         {
+
+            EnableCorsAttribute cors = new EnableCorsAttribute("http://localhost:5173,http://localhost:5174,http://localhost:5175", "*", "*");
+            config.EnableCors(cors);
             // Web API configuration and services
             config.Services.Replace(typeof(IExceptionHandler), new GlobalExceptionHandler());
             // Web API routes
@@ -23,8 +26,6 @@ namespace Backend
                 defaults: new { id = RouteParameter.Optional }
             );
 
-            EnableCorsAttribute cors = new EnableCorsAttribute("*", "*", "*");
-            config.EnableCors(cors);
         }
     }
 }

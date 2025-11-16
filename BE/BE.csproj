@@ -43,14 +43,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActualizarEstadoRequest.cs" />
     <Compile Include="Bitacora.cs" />
+    <Compile Include="CrearPedidoRequest.cs" />
+    <Compile Include="DetallePedido.cs" />
+    <Compile Include="DetallePedidoRequest.cs" />
     <Compile Include="Direccion.cs" />
     <Compile Include="Emocion.cs" />
     <Compile Include="Familia.cs" />
     <Compile Include="Libro.cs" />
+    <Compile Include="LibroCreateDTO.cs" />
+    <Compile Include="LibroUpdateDTO.cs" />
     <Compile Include="Patente.cs" />
     <Compile Include="Pedido.cs" />
     <Compile Include="Pelicula.cs" />
+    <Compile Include="PeliculaCreateDTO.cs" />
+    <Compile Include="PeliculaUpdateDTO.cs" />
     <Compile Include="Permiso.cs" />
     <Compile Include="Producto.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
