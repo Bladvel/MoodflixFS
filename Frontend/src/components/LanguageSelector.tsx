@@ -1,3 +1,4 @@
+import React from "react";
 import { useTranslation } from "../lib/language-context";
 
 interface LanguageSelectorProps {
@@ -7,7 +8,12 @@ interface LanguageSelectorProps {
 export function LanguageSelector({
   variant = "navbar",
 }: LanguageSelectorProps) {
-  const { idioma, cambiarIdioma } = useTranslation();
+  const { idioma, idiomas, cambiarIdioma, cargando } = useTranslation();
+
+  // No mostrar nada mientras carga
+  if (cargando || idiomas.length === 0) {
+    return null;
+  }
 
   const baseStyles = "flex items-center gap-2 text-sm font-medium";
 
@@ -27,45 +33,54 @@ export function LanguageSelector({
   const inactiveStyles =
     variant === "navbar" ? "hover:bg-white/10" : "hover:bg-gray-100";
 
+  // Mapeo de códigos de idioma a banderas (fallback si la BD no tiene banderas)
+  const getBandera = (codigo: string, banderaBD: string | undefined) => {
+    // Si la bandera de la BD es válida (no es ???? ni está vacía), usarla
+    if (banderaBD && banderaBD !== '????' && banderaBD.trim() !== '') {
+      return banderaBD;
+    }
+    
+    // Fallback: mapeo manual de banderas
+    const banderas: Record<string, string> = {
+      'es': '🇪🇸',
+      'en': '🇬🇧',
+      'fr': '🇫🇷',
+      'de': '🇩🇪',
+      'it': '🇮🇹',
+      'pt': '🇵🇹',
+    };
+    
+    return banderas[codigo.toLowerCase()] || '🌐';
+  };
+
   return (
     <div className={`${baseStyles} ${variantStyles[variant]}`}>
-      {/* Español */}
-      <button
-        onClick={() => cambiarIdioma("es")}
-        className={`${buttonBaseStyles} ${
-          idioma === "es" ? activeStyles : inactiveStyles
-        } flex items-center gap-1.5`}
-        aria-label="Cambiar a Español"
-      >
-        {/* Bandera España: Rojo-Amarillo-Rojo */}
-        <div className="flex flex-col w-5 h-4 rounded overflow-hidden border border-white/30">
-          <div className="h-1/4 bg-red-600"></div>
-          <div className="h-2/4 bg-yellow-400"></div>
-          <div className="h-1/4 bg-red-600"></div>
-        </div>
-        <span className="font-semibold">ES</span>
-      </button>
+      {idiomas.map((idiomaItem, index) => (
+        <React.Fragment key={idiomaItem.Codigo}>
+          <button
+            onClick={() => cambiarIdioma(idiomaItem.Codigo)}
+            className={`${buttonBaseStyles} ${
+              idioma === idiomaItem.Codigo ? activeStyles : inactiveStyles
+            } flex items-center gap-1.5`}
+            aria-label={`Cambiar a ${idiomaItem.Nombre}`}
+            title={idiomaItem.Nombre}
+          >
+            {/* Mostrar bandera (emoji) con fallback */}
+            <span className="text-lg">
+              {getBandera(idiomaItem.Codigo, idiomaItem.Bandera)}
+            </span>
+            {/* Mostrar código del idioma */}
+            <span className="font-semibold">
+              {idiomaItem.Codigo.toUpperCase()}
+            </span>
+          </button>
 
-      {/* Separador */}
-      <span className="text-current opacity-50">|</span>
-
-      {/* English */}
-      <button
-        onClick={() => cambiarIdioma("en")}
-        className={`${buttonBaseStyles} ${
-          idioma === "en" ? activeStyles : inactiveStyles
-        } flex items-center gap-1.5`}
-        aria-label="Change to English"
-      >
-        {/* Bandera USA: Azul con estrellas simplificado */}
-        <div className="flex flex-col w-5 h-4 rounded overflow-hidden border border-white/30">
-          <div className="h-1/2 bg-blue-700"></div>
-          <div className="h-1/6 bg-red-600"></div>
-          <div className="h-1/6 bg-white"></div>
-          <div className="h-1/6 bg-red-600"></div>
-        </div>
-        <span className="font-semibold">EN</span>
-      </button>
+          {/* Separador entre idiomas */}
+          {index < idiomas.length - 1 && (
+            <span className="text-current opacity-50">|</span>
+          )}
+        </React.Fragment>
+      ))}
     </div>
   );
 }

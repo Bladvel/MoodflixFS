@@ -223,6 +223,7 @@
     <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\BackupController.cs" />
     <Compile Include="Controllers\BitacoraController.cs" />
+    <Compile Include="Controllers\IdiomasController.cs" />
     <Compile Include="Controllers\PedidosController.cs" />
     <Compile Include="Controllers\UsuariosController.cs" />
     <Compile Include="Controllers\EmocionesController.cs" />

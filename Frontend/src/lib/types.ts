@@ -317,6 +317,29 @@ export interface DVRepairResponse {
   RegistrosReparados: number;
 }
 
+// ========== IDIOMAS ==========
+export interface Idioma {
+  Id: number;
+  Codigo: string;
+  Nombre: string;
+  Bandera: string;
+  Preestablecido: boolean;
+}
+
+export interface TraduccionesResponse {
+  Success: boolean;
+  Data: {
+    IdiomaId: number;
+    CodigoIdioma: string;
+    Traducciones: Record<string, any>;
+  };
+}
+
+export interface IdiomasResponse {
+  Success: boolean;
+  Data: Idioma[];
+}
+
 // ========== SERVICIO XML ==========
 export interface XmlExportResponse {
   xmlData: string;
