@@ -18,6 +18,7 @@ import LibrosPage from './pages/LibrosPage';
 import PeliculasPage from './pages/PeliculasPage';
 import CarritoPage from './pages/CarritoPage';
 import MisComprasPage from './pages/MisComprasPage';
+import IntegridadPage from './pages/IntegridadPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -127,6 +128,16 @@ function App() {
             element={
               <ProtectedRoute requiredPermission="VER_BITACORA">
                 <BitacoraPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Integridad DVH/DVV (solo Webmaster) */}
+          <Route
+            path="/integridad"
+            element={
+              <ProtectedRoute requiredPermission="GESTIONAR_DV">
+                <IntegridadPage />
               </ProtectedRoute>
             }
           />

@@ -916,3 +916,57 @@ export const api = {
 };
 
 export default api;
+
+// ============================================
+// INTEGRIDAD (DVH/DVV) API
+// ============================================
+
+export const integridadAPI = {
+  // POST /api/integridad/recalcular - Recalcular todos los dígitos verificadores
+  recalcular: async (): Promise<ApiResponse<any>> => {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
+    const response = await fetch(`${API_URL}/api/integridad/recalcular`, {
+      method: "POST",
+      headers,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({
+        Message: "Error al recalcular dígitos verificadores",
+      }));
+      throw new Error(errorData.Message || "Error en la solicitud");
+    }
+
+    return await response.json();
+  },
+
+  // GET /api/integridad/verificar - Verificar integridad (endpoint futuro)
+  verificar: async (): Promise<ApiResponse<any>> => {
+    const headers: Record<string, string> = {};
+
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
+    const response = await fetch(`${API_URL}/api/integridad/verificar`, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({
+        Message: "Error al verificar integridad",
+      }));
+      throw new Error(errorData.Message || "Error en la solicitud");
+    }
+
+    return await response.json();
+  },
+};

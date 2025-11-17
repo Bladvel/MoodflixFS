@@ -356,3 +356,16 @@ export interface XmlImportResponse {
   message: string;
   productosImportados?: number;
 }
+
+// ========== INTEGRIDAD (DVH/DVV) ==========
+export interface ResultadoIntegridad {
+  EsValido: boolean;
+  Errores: string[];
+  FechaVerificacion?: string;
+}
+
+export interface RecalcularIntegridadResponse {
+  Success: boolean;
+  Message: string;
+  Data?: ResultadoIntegridad;
+}
