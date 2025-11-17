@@ -1,14 +1,16 @@
 ﻿using Backend.Infrastructure;
 using Backend.Models;
 using BE;
+using BE.Types;
 using BLL;
-using System.Security.Claims;
 using Newtonsoft.Json.Linq;
 using Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using System.Web.Http;
 
 namespace Backend.Controllers
@@ -79,6 +81,32 @@ namespace Backend.Controllers
 
                 var usuarioCreado = _usuarioBLL.Create(nuevoUsuario, model.Password);
 
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var userBLL_background = new UsuarioBLL();
+
+                        dvBLL_background.ActualizarDVH("Usuario", usuarioCreado.Id, usuarioCreado);
+
+
+                        var todosLosUsuarios = userBLL_background.GetAll();
+                        dvBLL_background.RecalcularDVV("Usuario", todosLosUsuarios.Cast<object>().ToList());
+                    }
+                    catch (Exception ex)
+                    {
+                        BitacoraBLL.Instance.Registrar( new Bitacora 
+                        { 
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Modulo = TipoModulo.Usuarios,
+                            Criticidad = 3,
+                            Mensaje = $"Fallo DV background (Register Usuario): {ex.Message}"
+                        });
+                    }
+                });
+
+
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {
                     Modulo = BE.Types.TipoModulo.Usuarios,
@@ -130,10 +158,46 @@ namespace Backend.Controllers
                 // Actualizar solo los campos permitidos
                 usuarioExistente.NombreUsuario = usuario.NombreUsuario;
                 usuarioExistente.Email = usuario.Email;
+                
+                // Si se está desbloqueando, resetear intentos fallidos
+                if (usuarioExistente.Bloqueado && !usuario.Bloqueado)
+                {
+                    usuarioExistente.IntentosFallidos = 0;
+                }
+                
                 usuarioExistente.Bloqueado = usuario.Bloqueado;
-                _usuarioBLL.Update(usuario);
+                
+                // IMPORTANTE: Actualizar con usuarioExistente que tiene la contraseña
+                _usuarioBLL.Update(usuarioExistente);
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var userBLL_background = new UsuarioBLL();
+
+                        dvBLL_background.ActualizarDVH("Usuario", usuarioExistente.Id, usuarioExistente);
+
+
+                        var todosLosUsuarios = userBLL_background.GetAll();
+                        dvBLL_background.RecalcularDVV("Usuario", todosLosUsuarios.Cast<object>().ToList());
+                    }
+                    catch (Exception ex)
+                    {
+                        BitacoraBLL.Instance.Registrar(new Bitacora
+                        {
+                            Usuario = user,
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Modulo = TipoModulo.Usuarios,
+                            Criticidad = 3,
+                            Mensaje = $"Fallo DV background (Actualizar Usuario): {ex.Message}"
+                        });
+                    }
+                });
+
 
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {
@@ -144,7 +208,7 @@ namespace Backend.Controllers
                     Mensaje = $"Usuario {user.NombreUsuario} actualizó el usuario: {usuario.NombreUsuario}, Id: {usuario.Id}",
                 });
 
-                // CAMBIO: Devolver un JSON válido en lugar de solo Ok()
+
                 return Ok(new { Message = "Usuario actualizado correctamente", Success = true });
             }
             catch (Exception ex)
@@ -169,7 +233,7 @@ namespace Backend.Controllers
                 {
                     return NotFound();
                 }
-                // IMPORTANTE: Limpiar permisos existentes primero
+
                 usuario.Permisos.Clear();
                 if (permisos != null)
                 {
@@ -193,7 +257,6 @@ namespace Backend.Controllers
                 });
 
 
-                // IMPORTANTE: Devolver un JSON válido
                 return Ok(new { Message = "Permisos actualizados correctamente" });
             }
             catch (Exception ex)
@@ -224,6 +287,33 @@ namespace Backend.Controllers
                 _usuarioBLL.Delete(id);
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var userBLL_background = new UsuarioBLL();
+
+                        dvBLL_background.BorrarDVH("Usuario", id);
+
+
+                        var todosLosUsuarios = userBLL_background.GetAll();
+                        dvBLL_background.RecalcularDVV("Usuario", todosLosUsuarios.Cast<object>().ToList());
+                    }
+                    catch (Exception ex)
+                    {
+                        BitacoraBLL.Instance.Registrar(new Bitacora
+                        {
+                            Usuario = user,
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Modulo = TipoModulo.Usuarios,
+                            Criticidad = 3,
+                            Mensaje = $"Fallo DV background (Eliminar Usuario): {ex.Message}"
+                        });
+                    }
+                });
+
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {
                     Modulo = BE.Types.TipoModulo.Usuarios,

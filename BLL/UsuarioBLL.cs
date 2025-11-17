@@ -70,6 +70,12 @@ namespace BLL
 
         }
 
+        public Usuario ObtenerPorEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("El correo electrónico no puede estar vacío.", nameof(email));
+            return _usuarioDAL.GetByEmail(email);
+        }
 
         public Usuario Login(Usuario usuario)
         {

@@ -14,6 +14,15 @@ namespace Backend.Controllers
     {
         private readonly BitacoraBLL _bitacoraBLL = BitacoraBLL.Instance;
 
+
+        /// <summary>
+        /// GET: api/bitacora
+        /// Obtiene una lista de los eventos de la bitácora, con filtros opcionales.
+        /// Ejemplos de uso:
+        ///  - /api/bitacora
+        ///  - /api/bitacora?criticidad=3
+        ///  - /api/bitacora?usuarioId=1&fechaDesde=2024-01-01
+        /// </summary>
         [HttpGet]
         [Route("")]
         [CustomAuthorize(Permissions = "VER_BITACORA")]
@@ -25,13 +34,9 @@ namespace Backend.Controllers
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("=== INICIO Bitacora.Listar ===");
-                System.Diagnostics.Debug.WriteLine($"Parámetros: usuarioId={usuarioId}, criticidad={criticidad}");
 
                 var eventos = _bitacoraBLL.Listar(usuarioId, criticidad, fechaDesde, fechaHasta);
-                System.Diagnostics.Debug.WriteLine($"Eventos obtenidos: {eventos.Count}");
 
-                // Convertir a DTO de forma más segura
                 var eventosDTO = new List<object>();
 
                 foreach (var e in eventos)
@@ -40,17 +45,17 @@ namespace Backend.Controllers
                     {
                         eventosDTO.Add(new
                         {
-                            Id = e.Id,
-                            Fecha = e.Fecha,
+                            e.Id,
+                            e.Fecha,
                             Usuario = e.Usuario != null ? new
                             {
-                                Id = e.Usuario.Id,
+                                e.Usuario.Id,
                                 NombreUsuario = e.Usuario.NombreUsuario ?? "",
                                 Email = e.Usuario.Email ?? ""
                             } : null,
                             Modulo = e.Modulo.ToString(),
                             Operacion = e.Operacion.ToString(),
-                            Criticidad = e.Criticidad,
+                            e.Criticidad,
                             Mensaje = e.Mensaje ?? ""
                         });
                     }
@@ -61,14 +66,12 @@ namespace Backend.Controllers
                     }
                 }
 
-                System.Diagnostics.Debug.WriteLine($"DTO creado con {eventosDTO.Count} eventos");
-                System.Diagnostics.Debug.WriteLine("=== FIN Bitacora.Listar ===");
 
                 return Ok(eventosDTO);
             }
             catch (Exception ex)
             {
-                // Log detallado del error
+
                 System.Diagnostics.Debug.WriteLine("=== ERROR en Bitacora.Listar ===");
                 System.Diagnostics.Debug.WriteLine($"Message: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
@@ -78,13 +81,12 @@ namespace Backend.Controllers
                     System.Diagnostics.Debug.WriteLine($"InnerException StackTrace: {ex.InnerException.StackTrace}");
                 }
 
-                // Devolver error con más información
                 return Content(HttpStatusCode.InternalServerError, new
                 {
-                    Message = ex.Message,
+                    ex.Message,
                     ExceptionType = ex.GetType().Name,
                     InnerException = ex.InnerException?.Message,
-                    StackTrace = ex.StackTrace
+                    ex.StackTrace
                 });
             }
         }

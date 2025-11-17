@@ -56,7 +56,6 @@ namespace DAL
             return producto;
         }
 
-        // NUEVO MÉTODO: Cargar emociones de un producto
         private void CargarEmociones(Producto producto)
         {
             using (var con = new SqlConnection(_connectionString))
@@ -117,7 +116,6 @@ namespace DAL
                 if (dt.Rows.Count == 1)
                 {
                     var producto = Transform(dt.Rows[0]);
-                    // CARGAR EMOCIONES DEL PRODUCTO
                     CargarEmociones(producto);
                     return producto;
                 }
@@ -156,7 +154,6 @@ namespace DAL
                 cmd.Parameters.AddWithValue("@Editorial", libro.Editorial);
                 cmd.Parameters.AddWithValue("@ISBN", libro.ISBN);
 
-                // NUEVO: Enviar IDs de emociones como string separado por comas
                 string emocionesIds = libro.Emociones != null && libro.Emociones.Any()
                     ? string.Join(",", libro.Emociones.Select(e => e.Id))
                     : null;
@@ -279,6 +276,44 @@ namespace DAL
                 con.Open();
                 cmd.ExecuteNonQuery();
             }
+        }
+
+        public List<Libro> GetAllLibros()
+        {
+            var libros = new List<Libro>();
+            using (var con = new SqlConnection(_connectionString))
+            {
+                var da = new SqlDataAdapter("sp_ListarLibros", con);
+                da.SelectCommand.CommandType = CommandType.StoredProcedure;
+                var dt = new DataTable();
+                da.Fill(dt);
+                foreach (DataRow row in dt.Rows)
+                {
+                    var libro = Transform(row) as Libro;
+                    libros.Add(libro);
+                }
+            }
+            return libros;
+        }
+
+        public List<Pelicula> GetAllPeliculas()
+        {
+            var peliculas = new List<Pelicula>();
+            using (var con = new SqlConnection(_connectionString))
+            {
+                var da = new SqlDataAdapter("sp_ListarPeliculas", con);
+                da.SelectCommand.CommandType = CommandType.StoredProcedure;
+                var dt = new DataTable();
+                da.Fill(dt);
+                foreach (DataRow row in dt.Rows)
+                {
+                    var pelicula = Transform(row) as Pelicula;
+                    peliculas.Add(pelicula);
+                }
+            }
+            return peliculas;
+
+
         }
     }
 }

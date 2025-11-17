@@ -1,14 +1,16 @@
-﻿using System;
-using System.Security.Claims;
+﻿using Backend.Infrastructure;
+using BE;
+using BE.Types;
+using BLL;
+using Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using System.Web.Http;
-using BE;
-using BLL;
-using Backend.Infrastructure;
-using Services;
 
 namespace Backend.Controllers
 {
@@ -36,7 +38,7 @@ namespace Backend.Controllers
             }
             try
             {
-                // Convertir DTO a entidad Pelicula
+
                 var pelicula = new Pelicula
                 {
                     Nombre = peliculaDTO.Nombre,
@@ -50,7 +52,7 @@ namespace Backend.Controllers
                     Emociones = new List<Emocion>()
                 };
 
-                // Convertir IDs de emociones en objetos Emocion
+
                 if (peliculaDTO.EmocionesIds != null && peliculaDTO.EmocionesIds.Any())
                 {
                     foreach (var emocionId in peliculaDTO.EmocionesIds)
@@ -67,6 +69,32 @@ namespace Backend.Controllers
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
 
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var prodBLL_background = new ProductoBLL();
+
+                        dvBLL_background.ActualizarDVH("Peliculas", peliculaCreada.Id, peliculaCreada);
+
+
+                        var todasLasPeliculas = prodBLL_background.GetAllPeliculas();
+                        dvBLL_background.RecalcularDVV("Peliculas", todasLasPeliculas.Cast<object>().ToList());
+                    }
+                    catch (Exception ex)
+                    {
+
+                        BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                        {
+                            Usuario = user,
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Modulo = TipoModulo.LibroOPelicula,
+                            Mensaje = $"Fallo DV background (CrearPelicula): {ex.Message}",
+                            Criticidad = 2
+                        });
+                    }
+                });
 
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {
@@ -103,7 +131,7 @@ namespace Backend.Controllers
             try
             {
 
-                // Convertir DTO a entidad Pelicula
+
                 var pelicula = new Pelicula
                 {
                     Id = peliculaDTO.Id,
@@ -118,7 +146,7 @@ namespace Backend.Controllers
                     Emociones = new List<Emocion>()
                 };
 
-                // Convertir IDs de emociones en objetos Emocion
+
                 if (peliculaDTO.EmocionesIds != null && peliculaDTO.EmocionesIds.Any())
                 {
                     foreach (var emocionId in peliculaDTO.EmocionesIds)
@@ -134,6 +162,33 @@ namespace Backend.Controllers
                 _productoBLL.Update(pelicula);
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var prodBLL_background = new ProductoBLL();
+
+                        dvBLL_background.ActualizarDVH("Peliculas", pelicula.Id, pelicula);
+
+
+                        var todasLasPeliculas = prodBLL_background.GetAllPeliculas();
+                        dvBLL_background.RecalcularDVV("Peliculas", todasLasPeliculas.Cast<object>().ToList());
+                    }
+                    catch (Exception ex)
+                    {
+
+                        BitacoraBLL.Instance.Registrar(new BE.Bitacora
+                        {
+                            Usuario = user,
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Modulo = TipoModulo.LibroOPelicula,
+                            Mensaje = $"Fallo DV background (CrearPelicula): {ex.Message}",
+                            Criticidad = 2
+                        });
+                    }
+                });
 
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {

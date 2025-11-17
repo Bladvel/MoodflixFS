@@ -19,6 +19,7 @@ namespace BE.Types
         Desconocido,
         Permisos,
         Usuarios,
-        Pedidos
+        Pedidos,
+        Sistema,
     }
 }

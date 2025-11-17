@@ -15,6 +15,7 @@ namespace BE.Types
         Actualizacion,
         Baja,
         GeneracionBackup,
-        RestauracionBackup
+        RestauracionBackup,
+        IntegridadDatos
     }
 }
