@@ -165,5 +165,48 @@ namespace DAL
             }
             return null;
         }
+
+        // Agregar estos métodos a la clase UsuarioDAL existente
+
+        public void ActualizarIdiomaUsuario(int usuarioId, int idiomaId)
+        {
+            using (var con = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand(@"
+            UPDATE USUARIO 
+            SET ID_IDIOMA = @IdiomaId 
+            WHERE ID = @UsuarioId", con);
+
+                cmd.Parameters.AddWithValue("@IdiomaId", idiomaId);
+                cmd.Parameters.AddWithValue("@UsuarioId", usuarioId);
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public int? ObtenerIdiomaUsuario(int usuarioId)
+        {
+            using (var con = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand(@"
+                                            SELECT ID_IDIOMA 
+                                            FROM USUARIO 
+                                            WHERE ID = @UsuarioId", con);
+
+                cmd.Parameters.AddWithValue("@UsuarioId", usuarioId);
+
+                con.Open();
+                var result = cmd.ExecuteScalar();
+
+                if (result != null && result != DBNull.Value)
+                {
+                    return Convert.ToInt32(result);
+                }
+            }
+
+            return null;
+        }
+
     }
 }

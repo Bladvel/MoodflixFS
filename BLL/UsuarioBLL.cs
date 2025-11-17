@@ -117,5 +117,19 @@ namespace BLL
             if (!password.Any(char.IsLower))
                 throw new Exception("La contraseña debe contener al menos una letra minúscula.");
         }
+
+        // Agregar estos métodos a la clase UsuarioBLL existente
+
+        public void ActualizarIdiomaUsuario(int usuarioId, int idiomaId)
+        {
+            _usuarioDAL.ActualizarIdiomaUsuario(usuarioId, idiomaId);
+        }
+
+        public int? ObtenerIdiomaUsuario(int usuarioId)
+        {
+            return _usuarioDAL.ObtenerIdiomaUsuario(usuarioId);
+        }
+
+
     }
 }

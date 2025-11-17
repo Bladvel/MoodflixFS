@@ -46,11 +46,13 @@
     <Compile Include="BitacoraDAL.cs" />
     <Compile Include="DVDAL.cs" />
     <Compile Include="EmocionDAL.cs" />
+    <Compile Include="IdiomaDAL.cs" />
     <Compile Include="Mapper.cs" />
     <Compile Include="PedidoDAL.cs" />
     <Compile Include="PermisoDAL.cs" />
     <Compile Include="ProductoDAL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TraduccionDAL.cs" />
     <Compile Include="UsuarioDAL.cs" />
   </ItemGroup>
   <ItemGroup>

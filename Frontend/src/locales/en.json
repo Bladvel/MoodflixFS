@@ -35,7 +35,9 @@
     "user": "User",
     "active": "Active",
     "blocked": "Blocked",
-    "permissions": "Permissions"
+    "permissions": "Permissions",
+    "appName": "MOODFLIX",
+    "welcome": "Welcome"
   },
   "navbar": {
     "home": "Home",
@@ -47,22 +49,29 @@
     "cart": "Cart",
     "logout": "Log out",
     "bitacora": "Log",
-    "backup": "Backup"
+    "backup": "Backup",
+    "movies": "Movies",
+    "books": "Books",
+    "xmlManagement": "XML Management"
   },
   "header": {
-    "register": "Sign Up"
+    "register": "Sign Up",
+    "login": "Log In"
   },
   "auth": {
     "login": "Log In",
     "loginTitle": "Sign In",
+    "loginButton": "Log In",
     "register": "Sign Up",
     "registerTitle": "Create Account",
+    "registerButton": "Sign Up",
     "email": "Email",
     "password": "Password",
     "confirmPassword": "Confirm Password",
     "username": "Username",
     "forgotPassword": "Forgot your password?",
     "alreadyHaveAccount": "Already have an account? Sign in",
+    "noAccount": "Don't have an account?",
     "loggingIn": "Logging in...",
     "registering": "Signing up...",
     "loginError": "Login error",
@@ -87,7 +96,12 @@
     "exploreProducts": "Explore products",
     "movies": "Movies",
     "books": "Books",
-    "addToCart": "Add to Cart"
+    "addToCart": "Add to Cart",
+    "author": "Author",
+    "director": "Director",
+    "year": "Year",
+    "viewAll": "View All",
+    "noProductsFound": "No products found"
   },
   "emotions": {
     "title": "Emotions",
@@ -111,7 +125,10 @@
     "shippingAddressError": "Please enter a shipping address",
     "emptyCartError": "Cart is empty",
     "purchaseSuccess": "Purchase completed successfully!",
-    "purchaseError": "Error processing purchase"
+    "purchaseError": "Error processing purchase",
+    "quantity": "Quantity",
+    "product": "Product",
+    "unitPrice": "Unit Price"
   },
   "orders": {
     "title": "Orders",
@@ -304,6 +321,7 @@
     "director": "Director",
     "productora": "Production Company",
     "releaseYear": "Release Year",
+    "publicationYear": "Publication Year",
     "author": "Author",
     "editorial": "Publisher",
     "isbn": "ISBN",
@@ -336,6 +354,7 @@
     "closeEmojiSelector": "Close emoji selector",
     "preview": "Preview",
     "emotionName": "Emotion name",
+    "emotionNamePlaceholder": "E.g: Happiness, Sadness, Anger",
     "creating": "Saving...",
     "create": "Create",
     "update": "Update"
@@ -394,7 +413,10 @@
     "available": "Available",
     "notAvailable": "Not available",
     "addToCart": "Add to cart",
-    "loadError": "Error loading books"
+    "loadError": "Error loading books",
+    "author": "Author",
+    "editorial": "Publisher",
+    "year": "Year"
   },
   "dashboard": {
     "welcome": "Welcome to Moodflix",
@@ -436,5 +458,10 @@
     "generateError": "Error generating backup",
     "restoreError": "Error restoring backup",
     "selectFileError": "Please select a backup file"
+  },
+  "emotionsPage": {
+    "title": "Choose an emotion to start:",
+    "loadingEmotions": "Loading emotions...",
+    "noEmotions": "No emotions available"
   }
 }

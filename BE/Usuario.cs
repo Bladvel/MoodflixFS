@@ -26,6 +26,8 @@ namespace BE
         public bool Bloqueado { get; set; }
         //public string SessionToken { get; set; }
 
+        public int? IdIdioma { get; set; }
+        public Idioma Idioma { get; set; }
 
         public ICollection<Direccion> Direcciones { get; set; }
         public ICollection<Pedido> Pedidos { get; set; }

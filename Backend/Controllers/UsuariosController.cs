@@ -158,7 +158,16 @@ namespace Backend.Controllers
                 // Actualizar solo los campos permitidos
                 usuarioExistente.NombreUsuario = usuario.NombreUsuario;
                 usuarioExistente.Email = usuario.Email;
+                
+                // Si se está desbloqueando, resetear intentos fallidos
+                if (usuarioExistente.Bloqueado && !usuario.Bloqueado)
+                {
+                    usuarioExistente.IntentosFallidos = 0;
+                }
+                
                 usuarioExistente.Bloqueado = usuario.Bloqueado;
+                
+                // IMPORTANTE: Actualizar con usuarioExistente que tiene la contraseña
                 _usuarioBLL.Update(usuarioExistente);
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);

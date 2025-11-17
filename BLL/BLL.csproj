@@ -45,6 +45,7 @@
     <Compile Include="BitacoraBLL.cs" />
     <Compile Include="DVBLL.cs" />
     <Compile Include="EmocionBLL.cs" />
+    <Compile Include="IdiomaBLL.cs" />
     <Compile Include="PedidoBLL.cs" />
     <Compile Include="PermisoBLL.cs" />
     <Compile Include="ProductoBLL.cs" />
