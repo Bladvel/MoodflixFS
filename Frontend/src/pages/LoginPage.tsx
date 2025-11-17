@@ -1,11 +1,29 @@
-import React from 'react';
+import * as React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../lib/auth-context';
 import Header from '../components/Header';
 import LoginForm from '../components/LoginForm';
 
 const LoginPage: React.FC = () => {
+  const { usuario, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600" />
+      </div>
+    );
+  }
+
+  if (usuario) {
+    // Cuando login haya seteado usuario, esta rama se ejecuta
+    // y ya NO se muestra Header de login.
+    return <Navigate to="/emociones" replace />;
+  }
+
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Fondo animado con gradiente azul/púrpura */}
+      {/* fondo login */}
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-500">
         {/* Formas flotantes animadas más sutiles */}
         <div className="absolute top-20 left-10 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob"></div>

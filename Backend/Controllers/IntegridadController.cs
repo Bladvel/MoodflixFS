@@ -28,51 +28,93 @@ namespace Backend.Controllers
         public IHttpActionResult RecalcularTodaLaBase()
         {
             var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
-            Task.Run(() =>
+
+            try
             {
-                try
+
+
+                BitacoraBLL.Instance.Registrar(new Bitacora
                 {
+                    Usuario = user,
+                    Fecha = DateTime.Now,
+                    Operacion = TipoOperacion.IntegridadDatos,
+                    Modulo = TipoModulo.Sistema,
+                    Criticidad = 5,
+                    Mensaje = "Inicio de recálculo total de DVs."
+                });
+
+                var dvBLL_background = new DVBLL();
+                dvBLL_background.RecalcularTodaLaBaseDeDatos();
 
 
-                    BitacoraBLL.Instance.Registrar(new Bitacora
-                    {
-                        Usuario = user,
-                        Fecha = DateTime.Now,
-                        Operacion = TipoOperacion.IntegridadDatos,
-                        Modulo = TipoModulo.Sistema,
-                        Criticidad = 5,
-                        Mensaje = "Inicio de recálculo total de DVs."
-                    });
-
-                    var dvBLL_background = new DVBLL();
-                    dvBLL_background.RecalcularTodaLaBaseDeDatos();
-
-
-                    BitacoraBLL.Instance.Registrar(new Bitacora
-                    {
-                        Usuario = user,
-                        Fecha = DateTime.Now,
-                        Operacion = TipoOperacion.IntegridadDatos,
-                        Modulo = TipoModulo.Sistema,
-                        Criticidad = 5,
-                        Mensaje = "Recálculo total de DVs completado exitosamente."
-                    });
-                }
-                catch (Exception ex)
+                BitacoraBLL.Instance.Registrar(new Bitacora
                 {
-                    BitacoraBLL.Instance.Registrar(new Bitacora
-                    {
-                        Usuario = user,
-                        Fecha = DateTime.Now,
-                        Operacion = TipoOperacion.IntegridadDatos,
-                        Modulo = TipoModulo.Sistema,
-                        Criticidad = 5,
-                        Mensaje = $"FALLA CRÍTICA en recálculo total de DVs: {ex.Message}"
-                    });
-                }
-            });
+                    Usuario = user,
+                    Fecha = DateTime.Now,
+                    Operacion = TipoOperacion.IntegridadDatos,
+                    Modulo = TipoModulo.Sistema,
+                    Criticidad = 5,
+                    Mensaje = "Recálculo total de DVs completado exitosamente."
+                });
+            }
+            catch (Exception ex)
+            {
+                BitacoraBLL.Instance.Registrar(new Bitacora
+                {
+                    Usuario = user,
+                    Fecha = DateTime.Now,
+                    Operacion = TipoOperacion.IntegridadDatos,
+                    Modulo = TipoModulo.Sistema,
+                    Criticidad = 5,
+                    Mensaje = $"FALLA CRÍTICA en recálculo total de DVs: {ex.Message}"
+                });
+            }
 
-            return Ok(new { message = "Proceso de recálculo de DVs iniciado en segundo plano. Revise la bitácora para ver el estado." });
+            //Task.Run(() =>
+            //{
+            //    try
+            //    {
+
+
+            //        BitacoraBLL.Instance.Registrar(new Bitacora
+            //        {
+            //            Usuario = user,
+            //            Fecha = DateTime.Now,
+            //            Operacion = TipoOperacion.IntegridadDatos,
+            //            Modulo = TipoModulo.Sistema,
+            //            Criticidad = 5,
+            //            Mensaje = "Inicio de recálculo total de DVs."
+            //        });
+
+            //        var dvBLL_background = new DVBLL();
+            //        dvBLL_background.RecalcularTodaLaBaseDeDatos();
+
+
+            //        BitacoraBLL.Instance.Registrar(new Bitacora
+            //        {
+            //            Usuario = user,
+            //            Fecha = DateTime.Now,
+            //            Operacion = TipoOperacion.IntegridadDatos,
+            //            Modulo = TipoModulo.Sistema,
+            //            Criticidad = 5,
+            //            Mensaje = "Recálculo total de DVs completado exitosamente."
+            //        });
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        BitacoraBLL.Instance.Registrar(new Bitacora
+            //        {
+            //            Usuario = user,
+            //            Fecha = DateTime.Now,
+            //            Operacion = TipoOperacion.IntegridadDatos,
+            //            Modulo = TipoModulo.Sistema,
+            //            Criticidad = 5,
+            //            Mensaje = $"FALLA CRÍTICA en recálculo total de DVs: {ex.Message}"
+            //        });
+            //    }
+            //});
+
+            return Ok(new { message = "DV Recalculado" });
         }
 
     }

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from '../lib/auth-context';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../lib/language-context';
 
 const LoginForm: React.FC = () => {
@@ -10,7 +9,6 @@ const LoginForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   
   const { login } = useAuth();
-  const navigate = useNavigate();
   const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,9 +18,10 @@ const LoginForm: React.FC = () => {
 
     try {
       console.log('Intentando login...');
+      // 👇 solo esperamos a que el contexto haga su trabajo
       await login({ Email: email, Password: password });
-      console.log('Login exitoso, redirigiendo a /emociones');
-      navigate('/emociones');
+      // NO hacemos navigate aquí.
+      // LoginPage se encargará de redirigir cuando vea usuario != null
     } catch (err: any) {
       console.error('Error en login:', err);
       setError(err.Message || err.message || t('auth.loginError'));

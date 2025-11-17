@@ -8,6 +8,7 @@ interface AuthContextType {
   permisos: Permiso[];
   isAuthenticated: boolean;
   isLoading: boolean;
+  erroresIntegridad: string[] | null;
   login: (credentials: LoginModel) => Promise<void>;
   logout: () => Promise<void>;
   tienePermiso: (nombrePermiso: string) => boolean;
@@ -19,6 +20,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [permisos, setPermisos] = useState<Permiso[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [erroresIntegridad, setErroresIntegridad] = useState<string[] | null>(null);
 
   useEffect(() => {
     verificarSesion();
@@ -46,20 +48,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log("Login response recibida:", response);
       console.log("Tipo de response:", typeof response);
       console.log("Keys de response:", response ? Object.keys(response) : 'null');
+
+      // 👇 NUEVO: guardar errores de integridad si vienen
+      if (response && (response as any).ErroresIntegridad) {
+        const errores = (response as any).ErroresIntegridad as string[];
+        console.log("ErroresIntegridad recibidos:", errores);
+        setErroresIntegridad(errores && errores.length > 0 ? errores : null);
+      } else {
+        setErroresIntegridad(null);
+      }
       
       // Caso 1: Respuesta tiene Usuario directamente
-      if (response && response.Usuario) {
+      if (response && (response as any).Usuario) {
+        const usuarioResp = (response as any).Usuario as Usuario;
         console.log("✓ Caso 1: Usuario encontrado en respuesta");
-        console.log("Usuario:", response.Usuario);
-        console.log("Permisos:", response.Permisos);
-        setUsuario(response.Usuario);
-        setPermisos(response.Permisos || response.Usuario.Permisos || []);
+        console.log("Usuario:", usuarioResp);
+        console.log("Permisos:", (response as any).Permisos);
+        setUsuario(usuarioResp);
+        setPermisos(
+          (response as any).Permisos ||
+          usuarioResp.Permisos ||
+          []
+        );
         console.log("=== LOGIN EXITOSO (Caso 1) ===");
         return;
       }
       
       // Caso 2: Solo viene token, obtener perfil
-      if (response && (response.token || response.Token)) {
+      if (response && ((response as any).token || (response as any).Token)) {
         console.log("✓ Caso 2: Token encontrado, obteniendo perfil...");
         try {
           const usuarioCompleto = await usuariosAPI.obtenerMiPerfil();
@@ -98,6 +114,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error("Error Message:", error.Message);
       setUsuario(null);
       setPermisos([]);
+      setErroresIntegridad(null); // limpiar en error
       throw error;
     }
   };
@@ -110,6 +127,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } finally {
       setUsuario(null);
       setPermisos([]);
+      setErroresIntegridad(null);
     }
   };
 
@@ -136,6 +154,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     login,
     logout,
     tienePermiso,
+    erroresIntegridad,
   };
 
   if (isLoading) {

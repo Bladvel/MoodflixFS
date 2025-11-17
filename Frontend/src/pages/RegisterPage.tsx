@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { useAuth } from '../lib/auth-context';
 import Header from '../components/Header';
-import { useNavigate } from 'react-router-dom';
 import { usuariosAPI } from '../lib/api-endpoints';
 import { useTranslation } from '../lib/language-context';
 
 const RegisterPage: React.FC = () => {
+  const { usuario, isLoading } = useAuth();
   const [formData, setFormData] = useState({
     nombreUsuario: '',
     email: '',
@@ -54,6 +56,18 @@ const RegisterPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600" />
+      </div>
+    );
+  }
+
+  if (usuario) {
+    return <Navigate to="/emociones" replace />;
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden">

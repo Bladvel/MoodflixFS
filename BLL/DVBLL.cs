@@ -213,7 +213,7 @@ namespace BLL
                 if (!dictDvhsGuardados.TryGetValue(id, out DVHEntity dvhGuardado))
                 {
                     resultado.EsValido = false;
-                    resultado.Errores.Add($"Error DVH en Tabla: {tabla}, Registro ID: {id}. (Falta DVH)");
+                    resultado.Errores.Add($"Error DVH en Tabla: {tabla}, Registro ID: {id}. (Registro eliminado)");
                 }
                 else if (dvhCalculado != dvhGuardado.DVH)
                 {

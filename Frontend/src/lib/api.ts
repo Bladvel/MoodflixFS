@@ -10,6 +10,7 @@ export { emocionesAPI } from './api-endpoints';
 export { bitacoraAPI } from './api-endpoints';
 export { backupAPI } from './api-endpoints';
 export { permisosAPI } from './api-endpoints';
+export { integridadAPI } from './api-endpoints';
 
 // Para imports individuales
 import { authAPI } from './api-endpoints';
