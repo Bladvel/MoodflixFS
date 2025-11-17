@@ -3,6 +3,7 @@ using BLL;
 using Services;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -28,11 +29,15 @@ namespace Backend.Controllers
         [Route("generar")]
         public HttpResponseMessage GenerarBackup()
         {
-
             try
             {
-                // Usar la carpeta de backups de SQL Server donde ya tiene permisos
-                string backupDirectory = @"C:\Backups";
+                string backupDirectory = ConfigurationManager.AppSettings["BackupDirectory"] ?? @"C:\Backups";
+
+                if (!Directory.Exists(backupDirectory))
+                {
+                    Directory.CreateDirectory(backupDirectory);
+                }
+
                 string nombreArchivo = $"Moodflix-Backup-{DateTime.Now:yyyy-MM-dd-HHmmss}.bak";
                 string rutaCompleta = Path.Combine(backupDirectory, nombreArchivo);
 
@@ -51,7 +56,12 @@ namespace Backend.Controllers
                     finally
                     {
                         outputStream.Close();
-                        File.Delete(rutaCompleta);
+
+
+                        if (File.Exists(rutaCompleta))
+                        {
+                            File.Delete(rutaCompleta);
+                        }
                     }
                 }, "application/octet-stream");
 
@@ -70,12 +80,22 @@ namespace Backend.Controllers
                     Mensaje = $"Usuario {user.NombreUsuario} generó un backup.",
                 });
 
-
                 return response;
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.Forbidden,
+                    $"No hay permisos suficientes para acceder al directorio de backups: {ex.Message}");
+            }
+            catch (IOException ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError,
+                    $"Error de entrada/salida al generar el backup: {ex.Message}");
             }
             catch (Exception ex)
             {
-                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, ex.Message);
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError,
+                    $"Error al generar el backup: {ex.Message}");
             }
         }
 

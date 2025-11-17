@@ -1,14 +1,17 @@
-﻿using BLL;
+﻿using Backend.Infrastructure;
 using BE;
+using BE.Types;
+using BLL;
 using Services;
-using Backend.Infrastructure;
 using System;
-using System.Security.Claims;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Services.Description;
 
 namespace Backend.Controllers
 {
@@ -69,6 +72,43 @@ namespace Backend.Controllers
                 _productoBLL.Delete(id);
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var prodBLL_background = new ProductoBLL();
+
+                        if (productoExistente is BE.Libro)
+                        {
+                            dvBLL_background.BorrarDVH("Libros", id);
+                            var todosLosLibros = prodBLL_background.GetAllLibros();
+                            dvBLL_background.RecalcularDVV("Libros", todosLosLibros.Cast<object>().ToList());
+                        } else if (productoExistente is BE.Pelicula)
+                        {
+
+                            dvBLL_background.BorrarDVH("Peliculas", id);
+
+                            var todasLasPeliculas = prodBLL_background.GetAllPeliculas();
+                            dvBLL_background.RecalcularDVV("Peliculas", todasLasPeliculas.Cast<object>().ToList());
+
+
+                        } 
+                    }
+                    catch (Exception ex)
+                    {
+                        BitacoraBLL.Instance.Registrar( new Bitacora
+                        {
+                            Usuario= null,
+                            Operacion= TipoOperacion.IntegridadDatos,
+                            Modulo= TipoModulo.Productos,
+                            Mensaje= $"Fallo DV background (BorrarProducto Id: {id}): {ex.Message}",
+                            Criticidad= 2
+                        });
+                    }
+                });
+
 
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {

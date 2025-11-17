@@ -1,11 +1,13 @@
 ﻿using Backend.Infrastructure;
 using BE;
+using BE.Types;
 using BLL;
 using Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
 using System.Web.Routing;
@@ -54,7 +56,6 @@ namespace Backend.Controllers
                 if (pedido == null)
                     return NotFound();
 
-                // Verificar que el pedido pertenece al usuario autenticado
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
                 if (pedido.UsuarioId != user.Id)
                     return Unauthorized();
@@ -86,6 +87,49 @@ namespace Backend.Controllers
 
                 var pedido = _pedidoBLL.CrearPedido(request);
 
+
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var pedidoBLL_background = new PedidoBLL();
+                        var prodBLL_background = new ProductoBLL();
+
+                        // --- Actualizar Pedido ---
+                        dvBLL_background.ActualizarDVH("Pedido", pedido.Id, pedido);
+                        var todosLosPedidos = pedidoBLL_background.ListarTodos();
+                        dvBLL_background.RecalcularDVV("Pedido", todosLosPedidos.Cast<object>().ToList());
+
+                        var libros = prodBLL_background.GetAllLibros();
+                        foreach (var libro in libros)
+                        {
+                            dvBLL_background.ActualizarDVH("Libros", libro.Id, libro);
+                        }
+                        dvBLL_background.RecalcularDVV("Libros", libros.Cast<object>().ToList());
+
+                        var peliculas = prodBLL_background.GetAllPeliculas();
+                        foreach (var pelicula in peliculas)
+                        {
+                            dvBLL_background.ActualizarDVH("Peliculas", pelicula.Id, pelicula);
+                        }
+                        dvBLL_background.RecalcularDVV("Peliculas", peliculas.Cast<object>().ToList());
+
+                    }
+                    catch (Exception ex)
+                    {
+                        BitacoraBLL.Instance.Registrar(new Bitacora
+                        {
+                            Usuario = user,
+                            Modulo = TipoModulo.Pedidos,
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Mensaje = $"Fallo DV background (CrearPedido): {ex.Message}",
+                            Criticidad = 2
+                        });
+                    }
+                });
+
+
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {
                     Modulo = BE.Types.TipoModulo.Pedidos,
@@ -116,10 +160,39 @@ namespace Backend.Controllers
             {
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
 
-                // Verificar que sea Admin
-                // (puedes agregar validación de permisos aquí si lo necesitas)
 
                 _pedidoBLL.ActualizarEstado(id, request.NuevoEstado);
+
+
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var pedidoBLL_background = new PedidoBLL();
+                        var prodBLL_background = new ProductoBLL();
+
+
+                        dvBLL_background.ActualizarDVH("Pedido", id, pedidoBLL_background.ObtenerPorId(id));
+                        var todosLosPedidos = pedidoBLL_background.ListarTodos();
+                        dvBLL_background.RecalcularDVV("Pedido", todosLosPedidos.Cast<object>().ToList());
+
+
+
+                    }
+                    catch (Exception ex)
+                    {
+                        BitacoraBLL.Instance.Registrar(new Bitacora
+                        {
+                            Usuario = user,
+                            Modulo = TipoModulo.Pedidos,
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Mensaje = $"Fallo DV background (ActualizarEstadoPedido): {ex.Message}",
+                            Criticidad = 2
+                        });
+                    }
+                });
+
 
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {
@@ -150,8 +223,6 @@ namespace Backend.Controllers
             try
             {
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
-
-                // Verificar que sea Admin (puedes agregar validación de permisos aquí)
 
                 var pedidos = _pedidoBLL.ListarTodos();
                 return Ok(pedidos);

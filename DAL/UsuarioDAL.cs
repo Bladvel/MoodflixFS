@@ -148,7 +148,6 @@ namespace DAL
 
         }
 
-
         public Usuario GetByEmail(string email)
         {
             using (var con = new SqlConnection(_connectionString))

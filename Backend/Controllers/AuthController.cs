@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 
+
 namespace Backend.Controllers
 {
     /// <summary>
@@ -18,7 +19,18 @@ namespace Backend.Controllers
     [RoutePrefix("api/auth")]
     public class AuthController : ApiController
     {
-        private readonly UsuarioBLL _usuarioBLL = new UsuarioBLL();
+
+        private readonly UsuarioBLL _usuarioBLL;
+        private readonly DVBLL _dvBLL;
+        private readonly PermisoBLL _permisoBLL; 
+
+        public AuthController()
+        {
+            _usuarioBLL = new UsuarioBLL();
+            _dvBLL = new DVBLL();
+            _permisoBLL = new PermisoBLL();
+        }
+
 
         /// <summary>
         /// POST: api/auth/login
@@ -37,11 +49,34 @@ namespace Backend.Controllers
 
             try
             {
+                ResultadoIntegridad integridad = _dvBLL.VerificarIntegridad();
+
                 var usuarioIngresante = new Usuario
                 {
                     Email = model.Email,
                     PasswordHash = model.Password
                 };
+
+                if (!integridad.EsValido)
+                {
+
+                    Usuario usuarioIntentandoLoguear = _usuarioBLL.ObtenerPorEmail(model.Email);
+
+                    bool esWebmaster = false;
+                    if (usuarioIntentandoLoguear != null)
+                    {
+
+                        esWebmaster = _permisoBLL.TienePermiso(usuarioIntentandoLoguear, "GESTIONAR_DV");
+                    }
+
+                    if (!esWebmaster)
+                    {
+                        return Content(HttpStatusCode.ServiceUnavailable,
+                            new { message = "Sistema no disponible. Contacte a soporte." });
+                    }
+
+                }
+
                 var usuarioRegistrado = _usuarioBLL.Login(usuarioIngresante);
 
                 BitacoraBLL.Instance.Registrar(new Bitacora
@@ -53,10 +88,16 @@ namespace Backend.Controllers
                     Mensaje = $"El usuario '{usuarioRegistrado.NombreUsuario}' ha iniciado sesión exitosamente."
                 });
 
-
                 usuarioRegistrado.PasswordHash = null;
                 var token = TokenService.GenerateToken(usuarioRegistrado);
-                return Ok(new { token });
+
+                return Ok(new
+                {
+                    Token = token,
+                    Usuario = usuarioRegistrado,
+                    ErroresIntegridad = integridad.Errores
+                });
+
             }
             catch (Exception ex)
             {
@@ -68,7 +109,7 @@ namespace Backend.Controllers
                     Criticidad = 3,
                     Mensaje = $"Intento de login fallido para el email: {model.Email}. Razón: {ex.Message}"
                 });
-                return BadRequest(ex.Message);
+                return Content(HttpStatusCode.Unauthorized, new { message = ex.Message });
             }
         }
     }

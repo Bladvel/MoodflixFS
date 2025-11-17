@@ -47,7 +47,6 @@ namespace DAL
                 foreach (DataRow row in dt.Rows)
                 {
                     var pedido = Transform(row);
-                    // Cargar detalles del pedido
                     pedido.Detalles = ObtenerDetalles(pedido.Id);
                     pedidos.Add(pedido);
                 }
@@ -126,7 +125,7 @@ namespace DAL
                 {
                     try
                     {
-                        // Crear el pedido
+
                         var cmd = new SqlCommand("sp_CrearPedido", con, transaction);
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@UsuarioId", pedido.UsuarioId);
@@ -136,7 +135,7 @@ namespace DAL
 
                         int pedidoId = Convert.ToInt32(cmd.ExecuteScalar());
 
-                        // Agregar detalles del pedido
+
                         foreach (var detalle in pedido.Detalles)
                         {
                             var cmdDetalle = new SqlCommand("sp_AgregarDetallePedido", con, transaction);

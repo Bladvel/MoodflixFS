@@ -1,17 +1,19 @@
-﻿using System;
-using System.Security.Claims;
+﻿using Backend.Infrastructure;
+using BE;
+using BE.Types;
+using BLL;
+using Newtonsoft.Json.Linq;
+using Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.UI.WebControls;
-using BE;
-using BLL;
-using Backend.Infrastructure;
-using Services;
-using Newtonsoft.Json.Linq;
 
 namespace Backend.Controllers
 {
@@ -79,6 +81,36 @@ namespace Backend.Controllers
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
 
+
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var permisoBLL_background = new PermisoBLL();
+
+                        dvBLL_background.ActualizarDVH("Permiso", createdPermiso.Id, createdPermiso);
+
+
+                        var todosLosPermisos = permisoBLL_background.GetAll();
+                        dvBLL_background.RecalcularDVV("Permiso", todosLosPermisos.Cast<object>().ToList());
+
+                    }
+                    catch (Exception ex)
+                    {
+
+                        BitacoraBLL.Instance.Registrar(new Bitacora 
+                        { 
+                            Usuario = user,
+                            Modulo = TipoModulo.Permisos,
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Criticidad = 3,
+                            Mensaje = $"Fallo DV background (GuardarPermiso): {ex.Message}"
+                        });
+                    }
+                });
+
+
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {
                     Modulo = BE.Types.TipoModulo.Permisos,
@@ -134,6 +166,35 @@ namespace Backend.Controllers
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
 
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var permisoBLL_background = new PermisoBLL();
+
+                        dvBLL_background.ActualizarDVH("Permiso", permisoTraido.Id, permisoTraido);
+
+
+                        var todosLosPermisos = permisoBLL_background.GetAll();
+                        dvBLL_background.RecalcularDVV("Permiso", todosLosPermisos.Cast<object>().ToList());
+
+                    }
+                    catch (Exception ex)
+                    {
+
+                        BitacoraBLL.Instance.Registrar(new Bitacora
+                        {
+                            Usuario = user,
+                            Modulo = TipoModulo.Permisos,
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Criticidad = 3,
+                            Mensaje = $"Fallo DV background (ActualizarPermiso): {ex.Message}"
+                        });
+                    }
+                });
+
+
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {
                     Modulo = BE.Types.TipoModulo.Permisos,
@@ -176,6 +237,36 @@ namespace Backend.Controllers
                 _permisoBLL.Delete(id);
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var permisoBLL_background = new PermisoBLL();
+
+                        dvBLL_background.BorrarDVH("Permiso", id);
+
+
+                        var todosLosPermisos = permisoBLL_background.GetAll();
+                        dvBLL_background.RecalcularDVV("Permiso", todosLosPermisos.Cast<object>().ToList());
+
+                    }
+                    catch (Exception ex)
+                    {
+
+                        BitacoraBLL.Instance.Registrar(new Bitacora
+                        {
+                            Usuario = user,
+                            Modulo = TipoModulo.Permisos,
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Criticidad = 3,
+                            Mensaje = $"Fallo DV background (EliminarPermiso): {ex.Message}"
+                        });
+                    }
+                });
+
+
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {
                     Modulo = BE.Types.TipoModulo.Permisos,

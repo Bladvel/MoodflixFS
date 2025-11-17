@@ -12,7 +12,7 @@ namespace BE
         public int Id { get; set; }
 
         [Required(ErrorMessage = "El ID de usuario es requerido.")]
-        public int UsuarioId { get; set; } // La clave foránea (Foreign Key)
+        public int UsuarioId { get; set; }
 
         [Required(ErrorMessage = "La calle es requerida.")]
         [StringLength(200)]

@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="BackupDAL.cs" />
     <Compile Include="BitacoraDAL.cs" />
+    <Compile Include="DVDAL.cs" />
     <Compile Include="EmocionDAL.cs" />
     <Compile Include="IdiomaDAL.cs" />
     <Compile Include="Mapper.cs" />

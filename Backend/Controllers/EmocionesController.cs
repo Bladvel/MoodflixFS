@@ -1,15 +1,17 @@
-﻿using BE;
+﻿using Backend.Infrastructure;
+using BE;
+using BE.Types;
 using BLL;
+using Services;
 using System;
-using System.Security.Claims;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.UI.WebControls;
-using Backend.Infrastructure;
-using Services;
 
 namespace Backend.Controllers
 {
@@ -72,6 +74,33 @@ namespace Backend.Controllers
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
 
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var emocionBLL_background = new EmocionBLL();
+
+                        dvBLL_background.ActualizarDVH("Emocion", emocionCreada.Id, emocionCreada);
+
+                        var todasLasEmociones = emocionBLL_background.GetAll();
+                        dvBLL_background.RecalcularDVV("Emocion", todasLasEmociones.Cast<object>().ToList());
+                    }
+                    catch (Exception ex)
+                    {
+
+                        BitacoraBLL.Instance.Registrar( new Bitacora 
+                        { 
+                            Usuario = user,
+                            Modulo = TipoModulo.Emociones,
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Mensaje = $"Fallo DV background (CrearEmocion): {ex.Message}",
+                            Criticidad = 2
+                        });
+                    }
+                });
+
+
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {
                     Modulo = BE.Types.TipoModulo.Emociones,
@@ -120,6 +149,31 @@ namespace Backend.Controllers
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
 
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var emocionBLL_background = new EmocionBLL();
+
+                        dvBLL_background.ActualizarDVH("Emocion", emocion.Id, emocion);
+
+                        var todasLasEmociones = emocionBLL_background.GetAll();
+                        dvBLL_background.RecalcularDVV("Emocion", todasLasEmociones.Cast<object>().ToList());
+                    }
+                    catch (Exception ex)
+                    {
+
+                        BitacoraBLL.Instance.Registrar(new Bitacora
+                        {
+                            Usuario = user,
+                            Modulo = TipoModulo.Emociones,
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Mensaje = $"Fallo DV background (ActualizarEmocion): {ex.Message}",
+                            Criticidad = 2
+                        });
+                    }
+                });
 
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {
@@ -160,6 +214,34 @@ namespace Backend.Controllers
                 _emocionBLL.Delete(id);
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var emocionBLL_background = new EmocionBLL();
+
+                        dvBLL_background.BorrarDVH("Emocion", id);
+
+                        var todasLasEmociones = emocionBLL_background.GetAll();
+                        dvBLL_background.RecalcularDVV("Emocion", todasLasEmociones.Cast<object>().ToList());
+                    }
+                    catch (Exception ex)
+                    {
+
+                        BitacoraBLL.Instance.Registrar(new Bitacora
+                        {
+                            Usuario = user,
+                            Modulo = TipoModulo.Emociones,
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Mensaje = $"Fallo DV background (EliminarEmocion): {ex.Message}",
+                            Criticidad = 2
+                        });
+                    }
+                });
+
+
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {
                     Modulo = BE.Types.TipoModulo.Emociones,
