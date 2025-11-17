@@ -277,5 +277,43 @@ namespace DAL
                 cmd.ExecuteNonQuery();
             }
         }
+
+        public List<Libro> GetAllLibros()
+        {
+            var libros = new List<Libro>();
+            using (var con = new SqlConnection(_connectionString))
+            {
+                var da = new SqlDataAdapter("sp_ListarLibros", con);
+                da.SelectCommand.CommandType = CommandType.StoredProcedure;
+                var dt = new DataTable();
+                da.Fill(dt);
+                foreach (DataRow row in dt.Rows)
+                {
+                    var libro = Transform(row) as Libro;
+                    libros.Add(libro);
+                }
+            }
+            return libros;
+        }
+
+        public List<Pelicula> GetAllPeliculas()
+        {
+            var peliculas = new List<Pelicula>();
+            using (var con = new SqlConnection(_connectionString))
+            {
+                var da = new SqlDataAdapter("sp_ListarPeliculas", con);
+                da.SelectCommand.CommandType = CommandType.StoredProcedure;
+                var dt = new DataTable();
+                da.Fill(dt);
+                foreach (DataRow row in dt.Rows)
+                {
+                    var pelicula = Transform(row) as Pelicula;
+                    peliculas.Add(pelicula);
+                }
+            }
+            return peliculas;
+
+
+        }
     }
 }

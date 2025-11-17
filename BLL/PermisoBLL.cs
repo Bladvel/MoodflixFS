@@ -145,7 +145,34 @@ namespace BLL
 
         }
 
+        public bool TienePermiso(Usuario usuario, string nombrePermiso)
+        {
+            if (usuario == null)
+                throw new ArgumentNullException(nameof(usuario), "El usuario no puede ser nulo.");
+            if (string.IsNullOrWhiteSpace(nombrePermiso))
+                throw new ArgumentException("El nombre del permiso no puede ser vacío.", nameof(nombrePermiso));
 
-        
+            if (usuario.Permisos == null || usuario.Permisos.Count == 0)
+                return false;
+
+            return TienePermisoRecursivo(usuario.Permisos, nombrePermiso);
+        }
+
+        private bool TienePermisoRecursivo(ICollection<Permiso> permisos, string nombrePermiso)
+        {
+            foreach (var permiso in permisos)
+            {
+                if (permiso.Nombre.Equals(nombrePermiso, StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+                if (permiso is Familia familia && familia.Hijos != null && familia.Hijos.Count > 0)
+                {
+                    if (TienePermisoRecursivo(familia.Hijos, nombrePermiso))
+                        return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

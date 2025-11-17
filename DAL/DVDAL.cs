@@ -143,5 +143,23 @@ namespace DAL
                 cmd.ExecuteNonQuery();
             }
         }
+
+
+        public void BorrarDVH(string tabla, int registroId)
+        {
+            string query = "DELETE FROM DVH WHERE Tabla = @tabla AND RegistroId = @id";
+
+            using (var con = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand(query, con);
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.AddWithValue("@tabla", tabla);
+                cmd.Parameters.AddWithValue("@id", registroId);
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+
     }
 }

@@ -19,6 +19,17 @@ namespace BLL
             return _productoDAL.GetAll();
         }
 
+        public List<Libro> GetAllLibros()
+        {
+            return _productoDAL.GetAllLibros();
+        }
+
+        public List<Pelicula> GetAllPeliculas()
+        {
+            return _productoDAL.GetAllPeliculas();
+        }
+
+
         public Producto GetById(int id)
         {
             if (id <= 0)

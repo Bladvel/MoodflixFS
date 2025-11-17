@@ -24,7 +24,7 @@ namespace BE
         public string PasswordHash { get; set; }
         public int IntentosFallidos { get; set; }
         public bool Bloqueado { get; set; }
-        public string SessionToken { get; set; }
+        //public string SessionToken { get; set; }
 
 
         public ICollection<Direccion> Direcciones { get; set; }
