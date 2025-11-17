@@ -1,14 +1,16 @@
 ﻿using Backend.Infrastructure;
 using Backend.Models;
 using BE;
+using BE.Types;
 using BLL;
-using System.Security.Claims;
 using Newtonsoft.Json.Linq;
 using Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using System.Web.Http;
 
 namespace Backend.Controllers
@@ -79,6 +81,32 @@ namespace Backend.Controllers
 
                 var usuarioCreado = _usuarioBLL.Create(nuevoUsuario, model.Password);
 
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var userBLL_background = new UsuarioBLL();
+
+                        dvBLL_background.ActualizarDVH("Usuario", usuarioCreado.Id, usuarioCreado);
+
+
+                        var todosLosUsuarios = userBLL_background.GetAll();
+                        dvBLL_background.RecalcularDVV("Usuario", todosLosUsuarios.Cast<object>().ToList());
+                    }
+                    catch (Exception ex)
+                    {
+                        BitacoraBLL.Instance.Registrar( new Bitacora 
+                        { 
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Modulo = TipoModulo.Usuarios,
+                            Criticidad = 3,
+                            Mensaje = $"Fallo DV background (Register Usuario): {ex.Message}"
+                        });
+                    }
+                });
+
+
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {
                     Modulo = BE.Types.TipoModulo.Usuarios,
@@ -131,9 +159,36 @@ namespace Backend.Controllers
                 usuarioExistente.NombreUsuario = usuario.NombreUsuario;
                 usuarioExistente.Email = usuario.Email;
                 usuarioExistente.Bloqueado = usuario.Bloqueado;
-                _usuarioBLL.Update(usuario);
+                _usuarioBLL.Update(usuarioExistente);
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var userBLL_background = new UsuarioBLL();
+
+                        dvBLL_background.ActualizarDVH("Usuario", usuarioExistente.Id, usuarioExistente);
+
+
+                        var todosLosUsuarios = userBLL_background.GetAll();
+                        dvBLL_background.RecalcularDVV("Usuario", todosLosUsuarios.Cast<object>().ToList());
+                    }
+                    catch (Exception ex)
+                    {
+                        BitacoraBLL.Instance.Registrar(new Bitacora
+                        {
+                            Usuario = user,
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Modulo = TipoModulo.Usuarios,
+                            Criticidad = 3,
+                            Mensaje = $"Fallo DV background (Actualizar Usuario): {ex.Message}"
+                        });
+                    }
+                });
+
 
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {
@@ -223,6 +278,33 @@ namespace Backend.Controllers
                 _usuarioBLL.Delete(id);
 
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
+
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var dvBLL_background = new DVBLL();
+                        var userBLL_background = new UsuarioBLL();
+
+                        dvBLL_background.BorrarDVH("Usuario", id);
+
+
+                        var todosLosUsuarios = userBLL_background.GetAll();
+                        dvBLL_background.RecalcularDVV("Usuario", todosLosUsuarios.Cast<object>().ToList());
+                    }
+                    catch (Exception ex)
+                    {
+                        BitacoraBLL.Instance.Registrar(new Bitacora
+                        {
+                            Usuario = user,
+                            Operacion = TipoOperacion.IntegridadDatos,
+                            Modulo = TipoModulo.Usuarios,
+                            Criticidad = 3,
+                            Mensaje = $"Fallo DV background (Eliminar Usuario): {ex.Message}"
+                        });
+                    }
+                });
+
                 BitacoraBLL.Instance.Registrar(new BE.Bitacora
                 {
                     Modulo = BE.Types.TipoModulo.Usuarios,

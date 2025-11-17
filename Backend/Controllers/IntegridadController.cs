@@ -2,8 +2,10 @@
 using BE;
 using BE.Types;
 using BLL;
+using Services;
 using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Http;
 
@@ -25,13 +27,16 @@ namespace Backend.Controllers
         [Route("recalcular")]
         public IHttpActionResult RecalcularTodaLaBase()
         {
+            var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
             Task.Run(() =>
             {
                 try
                 {
 
+
                     BitacoraBLL.Instance.Registrar(new Bitacora
                     {
+                        Usuario = user,
                         Fecha = DateTime.Now,
                         Operacion = TipoOperacion.IntegridadDatos,
                         Modulo = TipoModulo.Sistema,
@@ -45,6 +50,7 @@ namespace Backend.Controllers
 
                     BitacoraBLL.Instance.Registrar(new Bitacora
                     {
+                        Usuario = user,
                         Fecha = DateTime.Now,
                         Operacion = TipoOperacion.IntegridadDatos,
                         Modulo = TipoModulo.Sistema,
@@ -56,6 +62,7 @@ namespace Backend.Controllers
                 {
                     BitacoraBLL.Instance.Registrar(new Bitacora
                     {
+                        Usuario = user,
                         Fecha = DateTime.Now,
                         Operacion = TipoOperacion.IntegridadDatos,
                         Modulo = TipoModulo.Sistema,

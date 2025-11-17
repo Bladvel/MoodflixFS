@@ -326,5 +326,10 @@ namespace BLL
 
 
         }
+
+        public void BorrarDVH(string tabla, int id)
+        {
+            dvDAL.BorrarDVH(tabla, id);
+        }
     }
 }
