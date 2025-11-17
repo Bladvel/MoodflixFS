@@ -56,7 +56,6 @@ namespace DAL
             return producto;
         }
 
-        // NUEVO MÉTODO: Cargar emociones de un producto
         private void CargarEmociones(Producto producto)
         {
             using (var con = new SqlConnection(_connectionString))
@@ -117,7 +116,6 @@ namespace DAL
                 if (dt.Rows.Count == 1)
                 {
                     var producto = Transform(dt.Rows[0]);
-                    // CARGAR EMOCIONES DEL PRODUCTO
                     CargarEmociones(producto);
                     return producto;
                 }
@@ -156,7 +154,6 @@ namespace DAL
                 cmd.Parameters.AddWithValue("@Editorial", libro.Editorial);
                 cmd.Parameters.AddWithValue("@ISBN", libro.ISBN);
 
-                // NUEVO: Enviar IDs de emociones como string separado por comas
                 string emocionesIds = libro.Emociones != null && libro.Emociones.Any()
                     ? string.Join(",", libro.Emociones.Select(e => e.Id))
                     : null;

@@ -54,14 +54,13 @@ namespace DAL
                 da.Fill(dt);
             }
 
-            // Obtener IDs únicos de usuarios
             var userIds = dt.AsEnumerable()
                 .Where(row => row["UsuarioId"] != DBNull.Value)
                 .Select(row => Convert.ToInt32(row["UsuarioId"]))
                 .Distinct()
                 .ToList();
 
-            // Cargar usuarios de forma simple
+
             var usuarios = new Dictionary<int, Usuario>();
             if (userIds.Count > 0)
             {
@@ -89,7 +88,7 @@ namespace DAL
                 }
             }
 
-            // Transformar las filas
+
             var eventos = new List<Bitacora>();
             foreach (DataRow row in dt.Rows)
             {
@@ -103,7 +102,7 @@ namespace DAL
                         Mensaje = row["Mensaje"].ToString()
                     };
 
-                    // Parsear Modulo con manejo de errores
+
                     string moduloStr = row["Modulo"].ToString();
                     if (Enum.TryParse<TipoModulo>(moduloStr, true, out TipoModulo modulo))
                     {
@@ -115,7 +114,7 @@ namespace DAL
                         bitacora.Modulo = TipoModulo.Desconocido;
                     }
 
-                    // Parsear Operacion con manejo de errores
+
                     string operacionStr = row["Operacion"].ToString();
                     if (Enum.TryParse<TipoOperacion>(operacionStr, true, out TipoOperacion operacion))
                     {
@@ -127,7 +126,7 @@ namespace DAL
                         bitacora.Operacion = TipoOperacion.Desconocida;
                     }
 
-                    // Asignar usuario si existe
+
                     if (row["UsuarioId"] != DBNull.Value)
                     {
                         int userId = Convert.ToInt32(row["UsuarioId"]);
@@ -142,7 +141,7 @@ namespace DAL
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"Error procesando fila de bitácora ID {row["Id"]}: {ex.Message}");
-                    // Continuar con la siguiente fila
+
                 }
             }
 
@@ -240,8 +239,6 @@ namespace DAL
                         Id = usuarios[userId].Id,
                         NombreUsuario = usuarios[userId].NombreUsuario,
                         Email = usuarios[userId].Email
-                        // NO incluir: Permisos, Pedidos, Bitacora, Direcciones, etc
-                        //bitacora.Usuario = usuarios[userId];
                     };
                 }
             }

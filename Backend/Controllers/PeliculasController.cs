@@ -36,7 +36,7 @@ namespace Backend.Controllers
             }
             try
             {
-                // Convertir DTO a entidad Pelicula
+
                 var pelicula = new Pelicula
                 {
                     Nombre = peliculaDTO.Nombre,
@@ -50,7 +50,7 @@ namespace Backend.Controllers
                     Emociones = new List<Emocion>()
                 };
 
-                // Convertir IDs de emociones en objetos Emocion
+
                 if (peliculaDTO.EmocionesIds != null && peliculaDTO.EmocionesIds.Any())
                 {
                     foreach (var emocionId in peliculaDTO.EmocionesIds)
@@ -103,7 +103,7 @@ namespace Backend.Controllers
             try
             {
 
-                // Convertir DTO a entidad Pelicula
+
                 var pelicula = new Pelicula
                 {
                     Id = peliculaDTO.Id,
@@ -118,7 +118,7 @@ namespace Backend.Controllers
                     Emociones = new List<Emocion>()
                 };
 
-                // Convertir IDs de emociones en objetos Emocion
+
                 if (peliculaDTO.EmocionesIds != null && peliculaDTO.EmocionesIds.Any())
                 {
                     foreach (var emocionId in peliculaDTO.EmocionesIds)

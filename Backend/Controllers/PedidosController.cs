@@ -54,7 +54,6 @@ namespace Backend.Controllers
                 if (pedido == null)
                     return NotFound();
 
-                // Verificar que el pedido pertenece al usuario autenticado
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
                 if (pedido.UsuarioId != user.Id)
                     return Unauthorized();
@@ -116,8 +115,6 @@ namespace Backend.Controllers
             {
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
 
-                // Verificar que sea Admin
-                // (puedes agregar validación de permisos aquí si lo necesitas)
 
                 _pedidoBLL.ActualizarEstado(id, request.NuevoEstado);
 
@@ -150,8 +147,6 @@ namespace Backend.Controllers
             try
             {
                 var user = TokenService.GetUserData(RequestContext.Principal as ClaimsPrincipal);
-
-                // Verificar que sea Admin (puedes agregar validación de permisos aquí)
 
                 var pedidos = _pedidoBLL.ListarTodos();
                 return Ok(pedidos);

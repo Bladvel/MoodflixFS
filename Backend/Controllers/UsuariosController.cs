@@ -144,7 +144,7 @@ namespace Backend.Controllers
                     Mensaje = $"Usuario {user.NombreUsuario} actualizó el usuario: {usuario.NombreUsuario}, Id: {usuario.Id}",
                 });
 
-                // CAMBIO: Devolver un JSON válido en lugar de solo Ok()
+
                 return Ok(new { Message = "Usuario actualizado correctamente", Success = true });
             }
             catch (Exception ex)
@@ -169,7 +169,7 @@ namespace Backend.Controllers
                 {
                     return NotFound();
                 }
-                // IMPORTANTE: Limpiar permisos existentes primero
+
                 usuario.Permisos.Clear();
                 if (permisos != null)
                 {
@@ -193,7 +193,6 @@ namespace Backend.Controllers
                 });
 
 
-                // IMPORTANTE: Devolver un JSON válido
                 return Ok(new { Message = "Permisos actualizados correctamente" });
             }
             catch (Exception ex)

@@ -77,22 +77,18 @@ namespace BLL
         {
             try
             {
-                // 1. Obtener todos los productos existentes
+
                 var productosExistentes = GetAll();
 
-                // 2. Eliminar todos los productos existentes
                 foreach (var producto in productosExistentes)
                 {
                     Delete(producto.Id);
                 }
 
-                // 3. Insertar los nuevos productos
                 foreach (var producto in productosNuevos)
                 {
-                    // Resetear el ID para que se genere uno nuevo en la base de datos
                     producto.Id = 0;
 
-                    // Usar el método Create que ya existe
                     Create(producto);
                 }
             }

@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="BackupBLL.cs" />
     <Compile Include="BitacoraBLL.cs" />
+    <Compile Include="DVBLL.cs" />
     <Compile Include="EmocionBLL.cs" />
     <Compile Include="PedidoBLL.cs" />
     <Compile Include="PermisoBLL.cs" />

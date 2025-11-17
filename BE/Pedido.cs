@@ -25,7 +25,7 @@ namespace BE
             Estado = "Creado";
         }
 
-        // Agregar esta clase al final del archivo Pedido.cs
+
         public class ProductoDetalle
         {
             public int Id { get; set; }
