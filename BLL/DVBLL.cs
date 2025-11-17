@@ -95,100 +95,205 @@ namespace BLL
             return resultado;
         }
 
+        ///// <summary>
+        ///// Verifica la integridad de todos los DVH (horizontales) en la base de datos.
+        ///// </summary>
+        //private void VerificarDVH(ResultadoIntegridad resultado)
+        //{
+        //    // --- 1. Productos (Libros y Peliculas) ---
+        //    var productoBLL = new ProductoBLL();
+
+        //    //TODO: Realizar metodo para buscar solo libros
+        //    List<Libro> libros = productoBLL.GetAllLibros();
+        //    foreach (var libro in libros)
+        //    {
+        //        string dvhCalculado = CalcularDVH(libro);
+        //        DVHEntity dvhGuardado = dvDAL.ObtenerDVH("Libros", libro.Id);
+        //        if (dvhGuardado == null || dvhCalculado != dvhGuardado.DVH)
+        //        {
+        //            resultado.EsValido = false;
+        //            resultado.Errores.Add($"Error DVH en Tabla: Libros, Registro ID: {libro.Id}.");
+        //        }
+        //    }
+
+        //    //TODO: Realizar metodo para buscar solo peliculas
+        //    List<Pelicula> peliculas = productoBLL.GetAllPeliculas();
+        //    foreach (var pelicula in peliculas)
+        //    {
+        //        string dvhCalculado = CalcularDVH(pelicula);
+        //        DVHEntity dvhGuardado = dvDAL.ObtenerDVH("Peliculas", pelicula.Id);
+        //        if (dvhGuardado == null || dvhCalculado != dvhGuardado.DVH)
+        //        {
+        //            resultado.EsValido = false;
+        //            resultado.Errores.Add($"Error DVH en Tabla: Peliculas, Registro ID: {pelicula.Id}.");
+        //        }
+        //    }
+
+        //    // --- 2. Usuarios ---
+        //    var usuarioBLL = new UsuarioBLL();
+        //    List<Usuario> usuarios = usuarioBLL.GetAll();
+        //    foreach (var usuario in usuarios)
+        //    {
+        //        string dvhCalculado = CalcularDVH(usuario);
+        //        DVHEntity dvhGuardado = dvDAL.ObtenerDVH("Usuario", usuario.Id);
+        //        if (dvhGuardado == null || dvhCalculado != dvhGuardado.DVH)
+        //        {
+        //            resultado.EsValido = false;
+        //            resultado.Errores.Add($"Error DVH en Tabla: Usuario, Registro ID: {usuario.Id}.");
+        //        }
+        //    }
+
+        //    // --- 3. Emociones ---
+        //    var emocionBLL = new EmocionBLL();
+        //    List<Emocion> emociones = emocionBLL.GetAll();
+        //    foreach (var emocion in emociones)
+        //    {
+        //        string dvhCalculado = CalcularDVH(emocion);
+        //        DVHEntity dvhGuardado = dvDAL.ObtenerDVH("Emocion", emocion.Id);
+        //        if (dvhGuardado == null || dvhCalculado != dvhGuardado.DVH)
+        //        {
+        //            resultado.EsValido = false;
+        //            resultado.Errores.Add($"Error DVH en Tabla: Emocion, Registro ID: {emocion.Id}.");
+        //        }
+        //    }
+
+        //    // --- 4. Pedidos ---
+        //    var pedidoBLL = new PedidoBLL();
+        //    List<Pedido> pedidos = pedidoBLL.ListarTodos();
+        //    foreach (var pedido in pedidos)
+        //    {
+        //        string dvhCalculado = CalcularDVH(pedido);
+        //        DVHEntity dvhGuardado = dvDAL.ObtenerDVH("Pedido", pedido.Id);
+        //        if (dvhGuardado == null || dvhCalculado != dvhGuardado.DVH)
+        //        {
+        //            resultado.EsValido = false;
+        //            resultado.Errores.Add($"Error DVH en Tabla: Pedido, Registro ID: {pedido.Id}.");
+        //        }
+        //    }
+
+
+
+        //    // --- 6. Permisos ---
+        //    var permisoBLL = new PermisoBLL();
+        //    List<Permiso> permisos = permisoBLL.GetAll();
+        //    foreach (var permiso in permisos)
+        //    {
+        //        string dvhCalculado = CalcularDVH(permiso);
+        //        DVHEntity dvhGuardado = dvDAL.ObtenerDVH("Permiso", permiso.Id);
+        //        if (dvhGuardado == null || dvhCalculado != dvhGuardado.DVH)
+        //        {
+        //            resultado.EsValido = false;
+        //            resultado.Errores.Add($"Error DVH en Tabla: Permiso, Registro ID: {permiso.Id}.");
+        //        }
+        //    }
+
+
+        //}
+
+        /// <summary>
+        /// Método "helper" genérico para verificar el DVH de cualquier tabla.
+        /// Comprueba tanto registros modificados como registros eliminados.
+        /// </summary>
+        private void VerificarDVH_ParaTabla(
+            string tabla,
+            List<object> entidades,
+            List<DVHEntity> dvhsGuardados,
+            Func<object, int> getId,
+            ResultadoIntegridad resultado)
+        {
+            var idsEntidadesExistentes = new HashSet<int>(entidades.Select(e => getId(e)));
+            var dictDvhsGuardados = dvhsGuardados.ToDictionary(dvh => dvh.RegistroId);
+
+            // --- CHECK 1: Registros editados o corruptos ---
+            foreach (var entidad in entidades)
+            {
+                int id = getId(entidad);
+                string dvhCalculado = CalcularDVH(entidad);
+
+                if (!dictDvhsGuardados.TryGetValue(id, out DVHEntity dvhGuardado))
+                {
+                    resultado.EsValido = false;
+                    resultado.Errores.Add($"Error DVH en Tabla: {tabla}, Registro ID: {id}. (Falta DVH)");
+                }
+                else if (dvhCalculado != dvhGuardado.DVH)
+                {
+                    resultado.EsValido = false;
+                    resultado.Errores.Add($"Error DVH en Tabla: {tabla}, Registro ID: {id}. (Registro modificado)");
+                }
+            }
+
+            // --- CHECK 2: Registros borrados ---
+            foreach (var dvhGuardado in dvhsGuardados)
+            {
+                if (!idsEntidadesExistentes.Contains(dvhGuardado.RegistroId))
+                {
+                    resultado.EsValido = false;
+                    resultado.Errores.Add($"Error DVH en Tabla: {tabla}, Registro ID: {dvhGuardado.RegistroId}. (Registro eliminado)");
+                }
+            }
+        }
+
+
         /// <summary>
         /// Verifica la integridad de todos los DVH (horizontales) en la base de datos.
+        /// Esta es la versión corregida que detecta ediciones Y borrados.
         /// </summary>
         private void VerificarDVH(ResultadoIntegridad resultado)
         {
             // --- 1. Productos (Libros y Peliculas) ---
             var productoBLL = new ProductoBLL();
 
-            //TODO: Realizar metodo para buscar solo libros
+            // Verificamos Libros
             List<Libro> libros = productoBLL.GetAllLibros();
-            foreach (var libro in libros)
-            {
-                string dvhCalculado = CalcularDVH(libro);
-                DVHEntity dvhGuardado = dvDAL.ObtenerDVH("Libros", libro.Id);
-                if (dvhGuardado == null || dvhCalculado != dvhGuardado.DVH)
-                {
-                    resultado.EsValido = false;
-                    resultado.Errores.Add($"Error DVH en Tabla: Libros, Registro ID: {libro.Id}.");
-                }
-            }
+            List<DVHEntity> dvhsLibros = dvDAL.ObtenerTodosLosDVH("Libros");
+            VerificarDVH_ParaTabla("Libros", libros.Cast<object>().ToList(), dvhsLibros,
+                (e) => ((Libro)e).Id, // Función para obtener el ID
+                resultado);
 
-            //TODO: Realizar metodo para buscar solo peliculas
+            // Verificamos Peliculas
             List<Pelicula> peliculas = productoBLL.GetAllPeliculas();
-            foreach (var pelicula in peliculas)
-            {
-                string dvhCalculado = CalcularDVH(pelicula);
-                DVHEntity dvhGuardado = dvDAL.ObtenerDVH("Peliculas", pelicula.Id);
-                if (dvhGuardado == null || dvhCalculado != dvhGuardado.DVH)
-                {
-                    resultado.EsValido = false;
-                    resultado.Errores.Add($"Error DVH en Tabla: Peliculas, Registro ID: {pelicula.Id}.");
-                }
-            }
+            List<DVHEntity> dvhsPeliculas = dvDAL.ObtenerTodosLosDVH("Peliculas");
+            VerificarDVH_ParaTabla("Peliculas", peliculas.Cast<object>().ToList(), dvhsPeliculas,
+                (e) => ((Pelicula)e).Id,
+                resultado);
 
             // --- 2. Usuarios ---
             var usuarioBLL = new UsuarioBLL();
             List<Usuario> usuarios = usuarioBLL.GetAll();
-            foreach (var usuario in usuarios)
-            {
-                string dvhCalculado = CalcularDVH(usuario);
-                DVHEntity dvhGuardado = dvDAL.ObtenerDVH("Usuario", usuario.Id);
-                if (dvhGuardado == null || dvhCalculado != dvhGuardado.DVH)
-                {
-                    resultado.EsValido = false;
-                    resultado.Errores.Add($"Error DVH en Tabla: Usuario, Registro ID: {usuario.Id}.");
-                }
-            }
+            List<DVHEntity> dvhsUsuarios = dvDAL.ObtenerTodosLosDVH("Usuario");
+            VerificarDVH_ParaTabla("Usuario", usuarios.Cast<object>().ToList(), dvhsUsuarios,
+                (e) => ((Usuario)e).Id,
+                resultado);
 
             // --- 3. Emociones ---
             var emocionBLL = new EmocionBLL();
             List<Emocion> emociones = emocionBLL.GetAll();
-            foreach (var emocion in emociones)
-            {
-                string dvhCalculado = CalcularDVH(emocion);
-                DVHEntity dvhGuardado = dvDAL.ObtenerDVH("Emocion", emocion.Id);
-                if (dvhGuardado == null || dvhCalculado != dvhGuardado.DVH)
-                {
-                    resultado.EsValido = false;
-                    resultado.Errores.Add($"Error DVH en Tabla: Emocion, Registro ID: {emocion.Id}.");
-                }
-            }
+            List<DVHEntity> dvhsEmociones = dvDAL.ObtenerTodosLosDVH("Emocion");
+            VerificarDVH_ParaTabla("Emocion", emociones.Cast<object>().ToList(), dvhsEmociones,
+                (e) => ((Emocion)e).Id,
+                resultado);
 
             // --- 4. Pedidos ---
             var pedidoBLL = new PedidoBLL();
             List<Pedido> pedidos = pedidoBLL.ListarTodos();
-            foreach (var pedido in pedidos)
-            {
-                string dvhCalculado = CalcularDVH(pedido);
-                DVHEntity dvhGuardado = dvDAL.ObtenerDVH("Pedido", pedido.Id);
-                if (dvhGuardado == null || dvhCalculado != dvhGuardado.DVH)
-                {
-                    resultado.EsValido = false;
-                    resultado.Errores.Add($"Error DVH en Tabla: Pedido, Registro ID: {pedido.Id}.");
-                }
-            }
-
+            List<DVHEntity> dvhsPedidos = dvDAL.ObtenerTodosLosDVH("Pedido");
+            VerificarDVH_ParaTabla("Pedido", pedidos.Cast<object>().ToList(), dvhsPedidos,
+                (e) => ((Pedido)e).Id,
+                resultado);
 
 
             // --- 6. Permisos ---
             var permisoBLL = new PermisoBLL();
             List<Permiso> permisos = permisoBLL.GetAll();
-            foreach (var permiso in permisos)
-            {
-                string dvhCalculado = CalcularDVH(permiso);
-                DVHEntity dvhGuardado = dvDAL.ObtenerDVH("Permiso", permiso.Id);
-                if (dvhGuardado == null || dvhCalculado != dvhGuardado.DVH)
-                {
-                    resultado.EsValido = false;
-                    resultado.Errores.Add($"Error DVH en Tabla: Permiso, Registro ID: {permiso.Id}.");
-                }
-            }
+            List<DVHEntity> dvhsPermisos = dvDAL.ObtenerTodosLosDVH("Permiso");
+            VerificarDVH_ParaTabla("Permiso", permisos.Cast<object>().ToList(), dvhsPermisos,
+                (e) => ((Permiso)e).Id,
+                resultado);
 
 
         }
+
+
 
         /// <summary>
         /// Verifica la integridad de todos los DVV (verticales) en la base de datos.
